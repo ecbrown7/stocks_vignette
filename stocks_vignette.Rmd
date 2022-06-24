@@ -14,6 +14,8 @@ knitr::opts_chunk$set(echo = TRUE)
 
 Hello. This document will show how I work with an API to retrieve data, create some functions to make data retrieval simpler, and show some data exploration with that data. Data for this work will come from the [Polygon Financial API](https://polygon.io/docs/stocks/getting-started) which has data on market endpoints and reference endpoints for all stock tickers. For the purposes of this work, a free account was used and therefor limits the data archive data to the previous 2 years. 
 
+Idea for project direction: In this document, I will demonstrate working with the Polygon Financial API to illustrate a key difference in buying patterns between common stock holdings and leveraged ETFs in the Oil and Gas exploratory industry. I will use data from 8/10 top Oil and Gas industry tickers along with 2x leveraged bear and bull ETFs, DRIP and GUSH. I will demonstrate that buying patterns over the past 2 years are indiscriminate to price on oil and gas common stock holdings while in leveraged ETFs, relative stock price determines trading. So on....
+
 # **Required Functions**
 
 These packages are required in order to work with the Polygon API:
@@ -62,7 +64,7 @@ plot + geom_point() + geom_smooth(method=lm, color = "Blue")
 
 
 
-api_dataTEST <- GET("https://api.polygon.io/v2/aggs/ticker/GUSH/range/1/day/2021-06-22/2022-06-22?adjusted=true&sort=asc&limit=5000&apiKey=OrlbxnjeCyqGDGkKtpIqxKKs0f8Eh77C")
+api_dataTEST <- GET("https://api.polygon.io/v2/aggs/ticker/DRIP/range/1/day/2021-06-22/2022-06-22?adjusted=true&sort=asc&limit=5000&apiKey=OrlbxnjeCyqGDGkKtpIqxKKs0f8Eh77C")
 
 #Convert to character string with fromJSON function
 parsed_api_dataTEST <- fromJSON(rawToChar(api_dataTEST$content))
@@ -97,4 +99,26 @@ newsample$mean = ((newsample$h + newsample$high) /2)
 
 plotTEST3 <- ggplot(newsample, aes(x=newsample$value, y=newsample$mean))
 plotTEST3 + geom_point()
+
+
+
+
+
+
+
+
+#Ticker types testing
+tickertypes <- GET("https://api.polygon.io/v3/reference/tickers/types?asset_class=stocks&apiKey=OrlbxnjeCyqGDGkKtpIqxKKs0f8Eh77C")
+
+#Convert to character string with fromJSON function
+tickertypes2 <- fromJSON(rawToChar(tickertypes$content))
+#str(parsed_api_data, max.level = 1)
+
+#Evaluate dataframe variable names
+tickertypes2$results %>% colnames()
+
+#Save as R object
+tickertypes3 <- tickertypes2$results
+
+
 ```
