@@ -135,19 +135,14 @@ The S&P Oil & Gas Exploration & Production Industry Index is comprised
 of 61 constituents. Let’s look 3 of the biggest contributors: Valero
 Energy Corp (VLO), Marathon Oil Corp (MRO), and Hess Corp (HES). Here,
 I’ll work with the marketcap function to retrieve the market cap data
-from June 1, 2022 and June 1, 2021, then organize it into a dataset that
-we can plot from.
+from June 1, 2022 and June 1, 2021, then organize it into a data set
+that we can plot from.
 
 ``` r
-#Marketcap for VLO
 VLOcap_21 <- marketcap("VLO", "2021-06-01")
 VLOcap_22 <- marketcap("VLO", "2022-06-01")
-
-#Marketcap for MRO
 MROcap_21 <- marketcap("MRO", "2021-06-01")
 MROcap_22 <- marketcap("MRO", "2022-06-01")
-
-#Marketcap for HES
 HEScap_21 <- marketcap("HES", "2021-06-01")
 HEScap_22 <- marketcap("HES", "2022-06-01")
 
@@ -167,7 +162,7 @@ plot1 + geom_bar(aes(fill=date), stat = "identity", position = "dodge") +
   scale_fill_discrete(name = "Year", labels = c("2021", "2022")) 
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-189-1.png)<!-- -->
+![](../images/unnamed-chunk-13-1.png)<!-- -->
 
 Okay, so clearly an increase in market cap for the oil industry “Big 3”
 from 2021 to 2022. Since market cap is indicative of the overall value

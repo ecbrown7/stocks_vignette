@@ -9,7 +9,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(fig.path = "../images/")
 ```
 
 This is a vignette to show how to retrieve data from an [API](https://aws.amazon.com/what-is/api/#:~:text=API%20stands%20for%20Application%20Programming,other%20using%20requests%20and%20responses.). To demonstrate, I'll be working with the [Polygon Financial API](https://polygon.io/docs/stocks/getting-started). For the purposes of this work, I used a free account with Polygon, limiting my data retrieval "from-date" to 2 years. 
@@ -124,18 +124,13 @@ marketcap <- function(ticker, date, apikey = "OrlbxnjeCyqGDGkKtpIqxKKs0f8Eh77C")
 
 This portion fo the vignette will now use the function for interacting with the Polygon Financial API to retrieve some data and look at some of the endpoints. 
 
-The S&P Oil & Gas Exploration & Production Industry Index is comprised of 61 constituents. Let's look 3 of the biggest contributors: Valero Energy Corp (VLO), Marathon Oil Corp (MRO), and Hess Corp (HES). Here, I'll work with the marketcap function to retrieve the market cap data from June 1, 2022 and June 1, 2021, then organize it into a dataset that we can plot from. 
+The S&P Oil & Gas Exploration & Production Industry Index is comprised of 61 constituents. Let's look 3 of the biggest contributors: Valero Energy Corp (VLO), Marathon Oil Corp (MRO), and Hess Corp (HES). Here, I'll work with the marketcap function to retrieve the market cap data from June 1, 2022 and June 1, 2021, then organize it into a data set that we can plot from. 
 ```{r, echo = TRUE, eval = TRUE, warning=FALSE, message=FALSE}
 
-#Marketcap for VLO
 VLOcap_21 <- marketcap("VLO", "2021-06-01")
 VLOcap_22 <- marketcap("VLO", "2022-06-01")
-
-#Marketcap for MRO
 MROcap_21 <- marketcap("MRO", "2021-06-01")
 MROcap_22 <- marketcap("MRO", "2022-06-01")
-
-#Marketcap for HES
 HEScap_21 <- marketcap("HES", "2021-06-01")
 HEScap_22 <- marketcap("HES", "2022-06-01")
 
