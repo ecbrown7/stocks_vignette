@@ -33,7 +33,57 @@ library(jsonlite)
 
 # Testing work with accessing API and some preliminary graphs, deciding where to take the project
 ```{r, echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE}
+#The aggregate function returns daily stock endpoints as a tibble for the provided ticker over the past ONE YEAR (june 22, 21 - june 22, 22)
+#Possible to work on dates 
 
+aggregate<- function(ticker, apikey){
+  #Set URL partitions
+  baseURL <- "https://api.polygon.io/v2/aggs/ticker/"
+  ticker <- ticker
+  adjustments <- "/range/1/day/2021-06-22/2022-06-22?adjusted=true&sort=asc&limit=5000&apiKey="
+  apikey <- apikey
+  #Paste partitions to get full URL with desired ticker
+  fullURL <- paste0(baseURL, ticker, adjustments, apikey)
+  
+  #Get api data using get function
+  api_data <- GET(fullURL)
+  #Convert to character string with fromJSON function
+  parsed_api_data <- fromJSON(rawToChar(api_data$content))
+  #Save as R object
+  parsed_api_data_results <- parsed_api_data$results
+  #Convert to tibble
+  parsed_tibble <- as_tibble(parsed_api_data_results)
+
+  #Append open market trading days over the year
+  #Create sequence of raw dates
+  dates <- (seq(as.Date("2021-06-22"),as.Date("2022-06-22"),by = 1))
+  #Filtering weekends (market not open)
+  dates <- as.tibble((dates[!weekdays(dates) %in% c("Saturday","Sunday")]))
+  #Filtering holidays (market not open)
+  holidaydates <- as.tibble(as.Date(c("2020-01-01", "2020-01-20", "2020-02-17", "2020-04-10", "2020-05-25", "2020-07-03", "2020-09-07", "2020-11-26",    "2020-12-25", "2021-01-01", "2021-01-18", "2021-02-15", "2021-04-02", "2021-05-31", "2021-06-18", "2021-07-05", "2021-09-06", "2021-11-25",          "2021-12-24", "2022-01-17", "2022-02-21", "2022-04-15", "2022-05-30", "2022-06-20", "2022-07-04"))) 
+  #Removing holiday dates from final dates vector
+  finaldates <- anti_join(dates, holidaydates)
+  #Combining data and market open dates
+  finaldata <- as_tibble(cbind(parsed_tibble, finaldates))
+  
+  #Change column names
+  colnames(finaldata) <- c("volume", "volume_weighted", "open", "close", "high", "low", "Unix_Msec", "transactions", "date")
+  
+  #Return tibble of data
+  return(finaldata)
+}
+
+testfunction <- aggregate("DRIP", "OrlbxnjeCyqGDGkKtpIqxKKs0f8Eh77C")
+
+str(testfunction)
+```
+
+
+
+
+
+
+```{r, echo = FALSE, eval = FALSE}
 api_data <- GET("https://api.polygon.io/v2/aggs/ticker/DRIP/range/1/day/2021-06-22/2022-06-22?adjusted=true&sort=asc&limit=5000&apiKey=OrlbxnjeCyqGDGkKtpIqxKKs0f8Eh77C")
 
 #Convert to character string with fromJSON function
@@ -99,9 +149,6 @@ newsample$mean = ((newsample$h + newsample$high) /2)
 
 plotTEST3 <- ggplot(newsample, aes(x=newsample$value, y=newsample$mean))
 plotTEST3 + geom_point()
-
-
-
 
 
 
