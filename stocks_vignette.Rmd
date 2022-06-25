@@ -12,17 +12,18 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-Hello. This document will show how I work with an API to retrieve data, create some functions to make data retrieval simpler, and show some data exploration with that data. Data for this work will come from the [Polygon Financial API](https://polygon.io/docs/stocks/getting-started) which has data on market endpoints and reference endpoints for all stock tickers. For the purposes of this work, a free account was used and therefor limits the data archive data to the previous 2 years. 
+This is a vignette to show how to retrieve data from an [API](https://aws.amazon.com/what-is/api/#:~:text=API%20stands%20for%20Application%20Programming,other%20using%20requests%20and%20responses.). To demonstrate, I'll be working with the [Polygon Financial API](https://polygon.io/docs/stocks/getting-started). For the purposes of this work, I used a free account with Polygon, limiting my data retrieval "from-date" to 2 years. 
 
-Idea for project direction: In this document, I will demonstrate working with the Polygon Financial API to illustrate a key difference in buying patterns between common stock holdings and leveraged ETFs in the Oil and Gas exploratory industry. I will use data from 8/10 top Oil and Gas industry tickers along with 2x leveraged bear and bull ETFs, DRIP and GUSH. I will demonstrate that buying patterns over the past 2 years are indiscriminate to price on oil and gas common stock holdings while in leveraged ETFs, relative stock price determines trading. So on....
+In this vignette, I will work to pull data from the [S&P Oil & Gas Exploration & Production Industry Index](https://www.spglobal.com/spdji/en/indices/equity/sp-oil-gas-exploration-production-select-industry-index/#data) and compare endpoints of some top index constituents to industry [ETF's](https://www.investopedia.com/terms/e/etf.asp#:~:text=An%20exchange%2Dtraded%20fund%20(ETF)%20is%20a%20type%20of,that%20a%20regular%20stock%20can.) and see if I can find any similarities or differences over the past 2 years. 
+
 
 # **Required Functions**
 
-These packages are required in order to work with the Polygon API:
+These R packages are required in order to work with the Polygon API:
 
-[tidyverse](https://www.tidyverse.org/packages/)
-[jsonlite](https://cran.r-project.org/web/packages/jsonlite/index.html)
-[httr](https://cran.r-project.org/web/packages/httr/vignettes/quickstart.html)
+- [tidyverse](https://www.tidyverse.org/packages/)  
+- [jsonlite](https://cran.r-project.org/web/packages/jsonlite/index.html) 
+- [httr](https://cran.r-project.org/web/packages/httr/vignettes/quickstart.html)  
 
 ```{r, echo=FALSE, eval=TRUE, warning=FALSE, message=FALSE}
 #Reading in packages
@@ -31,40 +32,46 @@ library(httr)
 library(jsonlite)
 ```
 
-# Testing work with accessing API and some preliminary graphs, deciding where to take the project
-```{r, echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE}
-#The aggregate function returns daily stock endpoints as a tibble for the provided ticker over the past ONE YEAR (june 22, 21 - june 22, 22)
-#Possible to work on dates 
+# **Functions for API Interaction**
 
-aggregate<- function(ticker, apikey){
+This portion of the vignette will show where I define functions for interacting with the Polygon Financial API.
+
+## 'aggregate' function
+
+This function returns daily stock endpoints from 06-21-2021 to 06-22-2022 as a tibble for the user provided tibble. apikey default is my key, but users of the function should pass their own key in the function call options. User keys can be generated [here](https://polygon.io/).
+
+```{r, echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE}
+
+aggregate<- function(ticker, apikey = "OrlbxnjeCyqGDGkKtpIqxKKs0f8Eh77C"){
+  
   #Set URL partitions
   baseURL <- "https://api.polygon.io/v2/aggs/ticker/"
-  ticker <- ticker
-  adjustments <- "/range/1/day/2021-06-22/2022-06-22?adjusted=true&sort=asc&limit=5000&apiKey="
-  apikey <- apikey
+    ticker <- ticker
+      adjustments <- "/range/1/day/2021-06-22/2022-06-22?adjusted=true&sort=asc&limit=5000&apiKey="
+        apikey <- apikey
+  
   #Paste partitions to get full URL with desired ticker
   fullURL <- paste0(baseURL, ticker, adjustments, apikey)
   
   #Get api data using get function
   api_data <- GET(fullURL)
-  #Convert to character string with fromJSON function
-  parsed_api_data <- fromJSON(rawToChar(api_data$content))
-  #Save as R object
-  parsed_api_data_results <- parsed_api_data$results
-  #Convert to tibble
-  parsed_tibble <- as_tibble(parsed_api_data_results)
+    #Convert to character string with fromJSON function
+    parsed_api_data <- fromJSON(rawToChar(api_data$content))
+      #Save as R object
+      parsed_api_data_results <- parsed_api_data$results
+        #Convert to tibble
+        parsed_tibble <- as_tibble(parsed_api_data_results)
 
-  #Append open market trading days over the year
   #Create sequence of raw dates
   dates <- (seq(as.Date("2021-06-22"),as.Date("2022-06-22"),by = 1))
-  #Filtering weekends (market not open)
-  dates <- as.tibble((dates[!weekdays(dates) %in% c("Saturday","Sunday")]))
-  #Filtering holidays (market not open)
-  holidaydates <- as.tibble(as.Date(c("2020-01-01", "2020-01-20", "2020-02-17", "2020-04-10", "2020-05-25", "2020-07-03", "2020-09-07", "2020-11-26",    "2020-12-25", "2021-01-01", "2021-01-18", "2021-02-15", "2021-04-02", "2021-05-31", "2021-06-18", "2021-07-05", "2021-09-06", "2021-11-25",          "2021-12-24", "2022-01-17", "2022-02-21", "2022-04-15", "2022-05-30", "2022-06-20", "2022-07-04"))) 
-  #Removing holiday dates from final dates vector
-  finaldates <- anti_join(dates, holidaydates)
-  #Combining data and market open dates
-  finaldata <- as_tibble(cbind(parsed_tibble, finaldates))
+    #Filtering weekends (market not open)
+    dates <- as.tibble((dates[!weekdays(dates) %in% c("Saturday","Sunday")]))
+      #Filtering holidays (market not open)
+        holidaydates <- as.tibble(as.Date(c("2020-01-01", "2020-01-20", "2020-02-17", "2020-04-10", "2020-05-25", "2020-07-03", "2020-09-07",     "2020-11-26", "2020-12-25", "2021-01-01", "2021-01-18", "2021-02-15", "2021-04-02", "2021-05-31", "2021-06-18", "2021-07-05", "2021-09-06", "2021-11-25", "2021-12-24", "2022-01-17", "2022-02-21", "2022-04-15", "2022-05-30", "2022-06-20", "2022-07-04"))) 
+          #Removing holiday dates from final dates vector
+          finaldates <- anti_join(dates, holidaydates)
+            #Combining data and market open dates
+            finaldata <- as_tibble(cbind(parsed_tibble, finaldates))
   
   #Change column names
   colnames(finaldata) <- c("volume", "volume_weighted", "open", "close", "high", "low", "Unix_Msec", "transactions", "date")
@@ -72,10 +79,38 @@ aggregate<- function(ticker, apikey){
   #Return tibble of data
   return(finaldata)
 }
+```
 
-testfunction <- aggregate("DRIP", "OrlbxnjeCyqGDGkKtpIqxKKs0f8Eh77C")
+## 'marketcap' Function
 
-str(testfunction)
+This function returns the [market cap](https://www.investopedia.com/terms/m/marketcapitalization.asp) for the user provided ticker and date. apikey default is my key, but users of the function should pass their own key in the function call options. User keys can be generated [here](https://polygon.io/).
+
+```{r, echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE}
+
+markettest <- GET("https://api.polygon.io/v3/reference/tickers/DRIP?date=2022-06-22&apiKey=OrlbxnjeCyqGDGkKtpIqxKKs0f8Eh77C")
+markettestcontent <- fromJSON(rawToChar(markettest$content))
+parsedmarket <- as_tibble(markettestcontent$results)
+selectedmarket <- select(parsedmarket, "ticker", "type", "share_class_shares_outstanding")
+
+ 
+marketprice <- GET("https://api.polygon.io/v1/open-close/DRIP/2022-06-22?adjusted=true&apiKey=OrlbxnjeCyqGDGkKtpIqxKKs0f8Eh77C")
+marketpricecontent <- as_tibble(fromJSON(rawToChar(marketprice$content)))
+selectedprice <- select(marketpricecontent, "symbol", "close")
+colnames(selectedprice) <- c("ticker", "close_price")
+
+fulldataprice <- full_join(selectedmarket, selectedprice)
+fulldataprice$market_cap = fulldataprice$share_class_shares_outstanding * fulldataprice$close_price
+```
+
+
+# Data Exploration
+
+This portion fo the vignette will now use the function for interacting with the Polygon Financial API to retrieve some data and look at some of the endpoints. 
+
+The S&P Oil & Gas Exploration & Production Industry Index is comprised of 61 constituents. 
+```{r, echo = TRUE, eval = TRUE, warning=FALSE, message=FALSE}
+
+
 ```
 
 
@@ -83,89 +118,22 @@ str(testfunction)
 
 
 
-```{r, echo = FALSE, eval = FALSE}
-api_data <- GET("https://api.polygon.io/v2/aggs/ticker/DRIP/range/1/day/2021-06-22/2022-06-22?adjusted=true&sort=asc&limit=5000&apiKey=OrlbxnjeCyqGDGkKtpIqxKKs0f8Eh77C")
-
-#Convert to character string with fromJSON function
-parsed_api_data <- fromJSON(rawToChar(api_data$content))
-#str(parsed_api_data, max.level = 1)
-
-#Evaluate dataframe variable names
-parsed_api_data$results %>% colnames()
-
-#Save as R object
-parsed_api_data_results <- parsed_api_data$results
-
-#Select source, author and title and print tibble
-parsed_tibble <- as_tibble(parsed_api_data_results)
-parsed_tibble
-
-#Append open market trading days over the year
-dates <- (seq(as.Date("2021-06-22"),as.Date("2022-06-22"),by = 1))
-dates <- as.tibble((dates[!weekdays(dates) %in% c("Saturday","Sunday")]))
-holidaydates <- as.tibble(as.Date(c("2021-07-05", "2021-09-06", "2021-11-25", "2021-12-24", "2022-01-17", "2022-02-21", "2022-04-15", "2022-05-30", "2022-06-20")))
-finaldates <- anti_join(dates, holidaydates)
-finaldata <- cbind(parsed_tibble, finaldates)
-
-plot <- ggplot(finaldata, aes(x=finaldata$value, y=finaldata$h))
-plot + geom_point() + geom_smooth(method=lm, color = "Blue")
 
 
 
 
 
-api_dataTEST <- GET("https://api.polygon.io/v2/aggs/ticker/DRIP/range/1/day/2021-06-22/2022-06-22?adjusted=true&sort=asc&limit=5000&apiKey=OrlbxnjeCyqGDGkKtpIqxKKs0f8Eh77C")
-
-#Convert to character string with fromJSON function
-parsed_api_dataTEST <- fromJSON(rawToChar(api_dataTEST$content))
-#str(parsed_api_data, max.level = 1)
-
-#Evaluate dataframe variable names
-parsed_api_dataTEST$results %>% colnames()
-
-#Save as R object
-parsed_api_dataTEST_results <- parsed_api_dataTEST$results
-
-#Select source, author and title and print tibble
-parsed_tibbleTEST <- as_tibble(parsed_api_dataTEST_results)
-parsed_tibbleTEST
-
-#Append open market trading days over the year
-datesTEST <- (seq(as.Date("2021-06-22"),as.Date("2022-06-22"),by = 1))
-datesTEST <- as.tibble((datesTEST[!weekdays(datesTEST) %in% c("Saturday","Sunday")]))
-holidaydatesTEST <- as.tibble(as.Date(c("2020-01-01", "2020-01-20", "2020-02-17", "2020-04-10", "2020-05-25", "2020-07-03", "2020-09-07", "2020-11-26", "2020-12-25", "2021-01-01", "2021-01-18", "2021-02-15", "2021-04-02", "2021-05-31", "2021-06-18", "2021-07-05", "2021-09-06", "2021-11-25", "2021-12-24", "2022-01-17", "2022-02-21", "2022-04-15", "2022-05-30", "2022-06-20")))
-finaldatesTEST <- anti_join(datesTEST, holidaydatesTEST)
-finaldataTEST <- cbind(parsed_tibbleTEST, finaldatesTEST)
-colnames(finaldataTEST) <- c("vol", "volweight", "open", "close", "high", "low", "timestamp", "number", "date")
-
-plotTEST <- ggplot(finaldataTEST, aes(x=finaldataTEST$date, y=finaldataTEST$high))
-plotTEST + geom_point() + geom_smooth(method=lm, color = "Blue")
-
-plotTEST2 <- ggplot(finaldataTEST, aes(x=finaldataTEST$high, y=finaldataTEST$vol))
-plotTEST2 + geom_point()
-
-newsample <- cbind(finaldata, finaldataTEST)
-newsample$mean = ((newsample$h + newsample$high) /2)
-
-plotTEST3 <- ggplot(newsample, aes(x=newsample$value, y=newsample$mean))
-plotTEST3 + geom_point()
 
 
 
 
 
-#Ticker types testing
-tickertypes <- GET("https://api.polygon.io/v3/reference/tickers/types?asset_class=stocks&apiKey=OrlbxnjeCyqGDGkKtpIqxKKs0f8Eh77C")
-
-#Convert to character string with fromJSON function
-tickertypes2 <- fromJSON(rawToChar(tickertypes$content))
-#str(parsed_api_data, max.level = 1)
-
-#Evaluate dataframe variable names
-tickertypes2$results %>% colnames()
-
-#Save as R object
-tickertypes3 <- tickertypes2$results
 
 
-```
+
+
+
+
+
+
+
