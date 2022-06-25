@@ -7,7 +7,7 @@ Evan Brown
 -   [**Functions for API Interaction**](#functions-for-api-interaction)
     -   [‘aggregate’ function](#aggregate-function)
     -   [‘marketcap’ Function](#marketcap-function)
--   [Data Exploration](#data-exploration)
+-   [**Data Exploration**](#data-exploration)
 
 This is a vignette to show how to retrieve data from an
 [API](https://aws.amazon.com/what-is/api/#:~:text=API%20stands%20for%20Application%20Programming,other%20using%20requests%20and%20responses.).
@@ -94,26 +94,82 @@ of the function should pass their own key in the function call options.
 User keys can be generated [here](https://polygon.io/).
 
 ``` r
-markettest <- GET("https://api.polygon.io/v3/reference/tickers/DRIP?date=2022-06-22&apiKey=OrlbxnjeCyqGDGkKtpIqxKKs0f8Eh77C")
-markettestcontent <- fromJSON(rawToChar(markettest$content))
-parsedmarket <- as_tibble(markettestcontent$results)
-selectedmarket <- select(parsedmarket, "ticker", "type", "share_class_shares_outstanding")
-
- 
-marketprice <- GET("https://api.polygon.io/v1/open-close/DRIP/2022-06-22?adjusted=true&apiKey=OrlbxnjeCyqGDGkKtpIqxKKs0f8Eh77C")
-marketpricecontent <- as_tibble(fromJSON(rawToChar(marketprice$content)))
-selectedprice <- select(marketpricecontent, "symbol", "close")
-colnames(selectedprice) <- c("ticker", "close_price")
-
-fulldataprice <- full_join(selectedmarket, selectedprice)
-fulldataprice$market_cap = fulldataprice$share_class_shares_outstanding * fulldataprice$close_price
+marketcap <- function(ticker, date, apikey = "OrlbxnjeCyqGDGkKtpIqxKKs0f8Eh77C"){
+  
+  #Set URL partitions
+  baseURL <- "https://api.polygon.io/v3/reference/tickers/"
+    ticker <- ticker
+      dateadjustment <- "?date="
+        date <- date
+          adjustments <- "&apiKey="
+            apikey <- apikey
+          
+  #Paste partitions to get full URL with desired ticker
+  fullURL <- paste0(baseURL, ticker, dateadjustment, date, adjustments, apikey)   
+  
+  #Get api data using get function
+  api_data <- GET(fullURL)
+    #Convert to character string with fromJSON function
+    parsed_api_data <- fromJSON(rawToChar(api_data$content))
+      #Save as R object
+      parsed_api_data_results <- parsed_api_data$results
+        #Save elements of interest
+        marketcap <- parsed_api_data_results[["market_cap"]]
+        ticker <- parsed_api_data_results[["ticker"]]
+        date2 <- date
+          #Combine and convert to tibble
+          marketcap_data <- as_data_frame(cbind(ticker, marketcap, date))
+          
+    #Return data
+    return(marketcap_data)
+}
 ```
 
-# Data Exploration
+# **Data Exploration**
 
 This portion fo the vignette will now use the function for interacting
 with the Polygon Financial API to retrieve some data and look at some of
 the endpoints.
 
 The S&P Oil & Gas Exploration & Production Industry Index is comprised
-of 61 constituents.
+of 61 constituents. Let’s look 3 of the biggest contributors: Valero
+Energy Corp (VLO), Marathon Oil Corp (MRO), and Hess Corp (HES). Here,
+I’ll work with the marketcap function to retrieve the market cap data
+from June 1, 2022 and June 1, 2021, then organize it into a dataset that
+we can plot from.
+
+``` r
+#Marketcap for VLO
+VLOcap_21 <- marketcap("VLO", "2021-06-01")
+VLOcap_22 <- marketcap("VLO", "2022-06-01")
+
+#Marketcap for MRO
+MROcap_21 <- marketcap("MRO", "2021-06-01")
+MROcap_22 <- marketcap("MRO", "2022-06-01")
+
+#Marketcap for HES
+HEScap_21 <- marketcap("HES", "2021-06-01")
+HEScap_22 <- marketcap("HES", "2022-06-01")
+
+#Create master dataset with marketcaps for all 3 companies in 2021 and 2022
+Bigoil_marketcaps <- as_tibble(bind_rows(VLOcap_21, VLOcap_22, MROcap_21, MROcap_22, HEScap_21, HEScap_22))
+
+#Lets change marketcap to a numeric value for better plotting
+Bigoil_marketcaps$marketcap <- as.numeric(Bigoil_marketcaps$marketcap)
+```
+
+Alright, now let’s plot that data and see what it looks like.
+
+``` r
+plot1 <- ggplot(Bigoil_marketcaps, aes(x = ticker, y = marketcap))
+plot1 + geom_bar(aes(fill=date), stat = "identity", position = "dodge") +
+  labs( x = "Ticker", y = "Market Cap", title = "Plot of Market Cap for Oil Index Big 3 for 2021 & 2022") +
+  scale_fill_discrete(name = "Year", labels = c("2021", "2022")) 
+```
+
+![](README_files/figure-gfm/unnamed-chunk-189-1.png)<!-- -->
+
+Okay, so clearly an increase in market cap for the oil industry “Big 3”
+from 2021 to 2022. Since market cap is indicative of the overall value
+of the companies, it’s safe to say these guys have done well the past
+year.
