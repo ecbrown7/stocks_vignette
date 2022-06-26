@@ -51,7 +51,7 @@ aggregate<- function(ticker, apikey = "OrlbxnjeCyqGDGkKtpIqxKKs0f8Eh77C"){
   #Set URL partitions
   baseURL <- "https://api.polygon.io/v2/aggs/ticker/"
     ticker <- ticker
-      adjustments <- "/range/1/day/2021-06-22/2022-06-22?adjusted=true&sort=asc&limit=5000&apiKey="
+      adjustments <- "/range/1/day/2020-06-24/2022-06-24?adjusted=true&sort=asc&limit=5000&apiKey="
         apikey <- apikey
   
   #Paste partitions to get full URL with desired ticker
@@ -67,7 +67,7 @@ aggregate<- function(ticker, apikey = "OrlbxnjeCyqGDGkKtpIqxKKs0f8Eh77C"){
         parsed_tibble <- as_tibble(parsed_api_data_results)
 
   #Create sequence of raw dates
-  dates <- (seq(as.Date("2021-06-22"),as.Date("2022-06-22"),by = 1))
+  dates <- (seq(as.Date("2020-06-24"),as.Date("2022-06-24"),by = 1))
     #Filtering weekends (market not open)
     dates <- as.tibble((dates[!weekdays(dates) %in% c("Saturday","Sunday")]))
       #Filtering holidays (market not open)
@@ -113,15 +113,12 @@ marketcap <- function(ticker, date, apikey = "OrlbxnjeCyqGDGkKtpIqxKKs0f8Eh77C")
     parsed_api_data <- fromJSON(rawToChar(api_data$content))
       #Save as R object
       parsed_api_data_results <- parsed_api_data$results
-        #Save elements of interest
-        marketcap <- parsed_api_data_results[["market_cap"]]
-        ticker <- parsed_api_data_results[["ticker"]]
-        date2 <- date
-          #Combine and convert to tibble
-          marketcap_data <- as_data_frame(cbind(ticker, marketcap, date))
-          
-    #Return data
-    return(marketcap_data)
+      results <- as_data_frame(parsed_api_data_results[names(parsed_api_data_results) != "address"])
+      selecteddata <- results %>% select(1, 12) 
+      finaldata <- distinct(selecteddata)
+      
+      return(finaldata)
+
 }
 ```
 
@@ -139,12 +136,12 @@ from June 1, 2022 and June 1, 2021, then organize it into a data set
 that we can plot from.
 
 ``` r
-VLOcap_21 <- marketcap("VLO", "2021-06-01")
-VLOcap_22 <- marketcap("VLO", "2022-06-01")
-MROcap_21 <- marketcap("MRO", "2021-06-01")
-MROcap_22 <- marketcap("MRO", "2022-06-01")
-HEScap_21 <- marketcap("HES", "2021-06-01")
-HEScap_22 <- marketcap("HES", "2022-06-01")
+VLOcap_21 <- marketcap("VLO", "2021-06-01") 
+  VLOcap_22 <- marketcap("VLO", "2022-06-01")
+    MROcap_21 <- marketcap("MRO", "2021-06-01")
+      MROcap_22 <- marketcap("MRO", "2022-06-01")
+        HEScap_21 <- marketcap("HES", "2021-06-01")
+          HEScap_22 <- marketcap("HES", "2022-06-01")
 
 #Create master dataset with marketcaps for all 3 companies in 2021 and 2022
 Bigoil_marketcaps <- as_tibble(bind_rows(VLOcap_21, VLOcap_22, MROcap_21, MROcap_22, HEScap_21, HEScap_22))
@@ -156,15 +153,176 @@ Bigoil_marketcaps$marketcap <- as.numeric(Bigoil_marketcaps$marketcap)
 Alright, now let’s plot that data and see what it looks like.
 
 ``` r
-plot1 <- ggplot(Bigoil_marketcaps, aes(x = ticker, y = marketcap))
-plot1 + geom_bar(aes(fill=date), stat = "identity", position = "dodge") +
+plot1 <- ggplot(Bigoil_marketcaps, aes(x = ticker, y = marketcap)) +
+  geom_bar(aes(fill=date), stat = "identity", position = "dodge") +
   labs( x = "Ticker", y = "Market Cap", title = "Plot of Market Cap for Oil Index Big 3 for 2021 & 2022") +
   scale_fill_discrete(name = "Year", labels = c("2021", "2022")) 
-```
 
-![](../images/unnamed-chunk-13-1.png)<!-- -->
+plot1
+```
 
 Okay, so clearly an increase in market cap for the oil industry “Big 3”
 from 2021 to 2022. Since market cap is indicative of the overall value
 of the companies, it’s safe to say these guys have done well the past
 year.
+
+**Let’s use the aggregate function to retrieve some data from the oil
+industry to explore recent price trends. First, we’ll take a look at the
+oil industry “Big 3” then look at 2 leveraged ETF’s of the index: DRIP
+(2x bear) and GUSH (2x bull). **
+
+Let’s start with exploring VLO.
+
+``` r
+#Retrieving data on DRIP ticker
+VLO <- aggregate("VLO")
+
+#Creating avg daily price column
+VLO$avgprice <- ((VLO$high + VLO$low)/2)
+
+#Quick plot of average daily price over the past 2 years
+plot3 <- ggplot(VLO, aes(x=date, y=avgprice)) +
+  geom_point() +
+  geom_smooth(method = gamma) +
+  labs( x = "Date", y = "Avg Daily Price", title = "VLO Average Daily Price Data")
+plot3
+```
+
+![](../images/unnamed-chunk-154-1.png)<!-- -->
+
+``` r
+plot4 <- ggplot(VLO, aes(x=date, y=volume)) +
+  geom_point() +
+  geom_smooth(method = gamma) +
+  labs( x = "Date", y = "Volume", title = "VLO Volume Data")
+plot4
+```
+
+![](../images/unnamed-chunk-154-2.png)<!-- -->
+
+Now, MRO.
+
+``` r
+#Retrieving data on DRIP ticker
+MRO <- aggregate("MRO")
+
+#Creating avg daily price column
+MRO$avgprice <- ((MRO$high + MRO$low)/2)
+
+#Quick plot of average daily price over the past 2 years
+plot5 <- ggplot(MRO, aes(x=date, y=avgprice)) +
+  geom_point() +
+  geom_smooth(method = gamma) +
+  labs( x = "Date", y = "Avg Daily Price", title = "MRO Average Daily Price Data")
+plot5
+```
+
+![](../images/unnamed-chunk-155-1.png)<!-- -->
+
+``` r
+plot6 <- ggplot(MRO, aes(x=date, y=volume)) +
+  geom_point() +
+  geom_smooth(method = gamma) +
+  labs( x = "Date", y = "Volume", title = "MRO Volume Data")
+plot6
+```
+
+![](../images/unnamed-chunk-155-2.png)<!-- -->
+
+Now, HES.
+
+``` r
+#Retrieving data on DRIP ticker
+HES <- aggregate("HES")
+
+#Creating avg daily price column
+HES$avgprice <- ((HES$high + HES$low)/2)
+
+#Quick plot of average daily price over the past 2 years
+plot7 <- ggplot(HES, aes(x=date, y=avgprice)) +
+  geom_point() +
+  geom_smooth(method = gamma) +
+  labs( x = "Date", y = "Avg Daily Price", title = "HES Average Daily Price Data")
+plot7
+```
+
+![](../images/unnamed-chunk-156-1.png)<!-- -->
+
+``` r
+plot8 <- ggplot(HES, aes(x=date, y=volume)) +
+  geom_point() +
+  geom_smooth(method = gamma) +
+  labs( x = "Date", y = "Volume", title = "HES Volume Data")
+plot8
+```
+
+![](../images/unnamed-chunk-156-2.png)<!-- -->
+
+All of the oil industry Big 3 companies show a solid increase in average
+daily stock price and consistent volume across the price increase. Safe
+to say these companies have been doing well the past two years!
+
+Now, let’s explore two popular leveraged ETF’s for the oil and gas
+industry. DRIP is a 2x leveraged inverse ETF, and GUSH is a standard 2x
+leveraged ETF.
+
+``` r
+#Retrieving data on DRIP ticker
+DRIP <- aggregate("DRIP")
+
+#Creating avg daily price column
+DRIP$avgprice <- ((DRIP$high + DRIP$low)/2)
+
+#Quick plot of average daily price over the past 2 years
+plot9 <- ggplot(DRIP, aes(x=date, y=avgprice)) +
+  geom_point() +
+  geom_smooth(method = gamma) +
+  labs( x = "Date", y = "Avg Daily Price", title = "DRIP Average Daily Price Data")
+plot9
+```
+
+![](../images/unnamed-chunk-157-1.png)<!-- -->
+
+``` r
+plot10 <- ggplot(DRIP, aes(x=date, y=volume)) +
+  geom_point() +
+  geom_smooth(method = gamma) +
+  labs( x = "Date", y = "Volume", title = "DRIP Volume Data")
+plot10
+```
+
+![](../images/unnamed-chunk-157-2.png)<!-- -->
+
+Well, that looks different! DRIP clearly hasn’t followed the same
+moderate trends. Let’s see what GUSH looks like.
+
+``` r
+#Retrieving data on DRIP ticker
+GUSH <- aggregate("GUSH")
+
+#Creating avg daily price column
+GUSH$avgprice <- ((GUSH$high + GUSH$low)/2)
+
+#Quick plot of average daily price over the past 2 years
+plot11 <- ggplot(GUSH, aes(x=date, y=avgprice)) +
+  geom_point() +
+  geom_smooth(method = gamma) +
+  labs( x = "Date", y = "Avg Daily Price", title = "GUSH Average Daily Price Data")
+plot11
+```
+
+![](../images/unnamed-chunk-158-1.png)<!-- -->
+
+``` r
+plot12 <- ggplot(GUSH, aes(x=date, y=volume)) +
+  geom_point() +
+  geom_smooth(method = gamma) +
+  labs( x = "Date", y = "Volume", title = "GUSH Volume Data")
+plot12
+```
+
+![](../images/unnamed-chunk-158-2.png)<!-- -->
+
+As expected, since GUSH follows the industry, the price trend looks very
+similar to that of the Big 3. However, volume decreases over time
+significantly more than those Big 3 companies.
