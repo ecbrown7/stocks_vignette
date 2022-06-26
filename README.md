@@ -188,7 +188,7 @@ plot3 <- ggplot(VLO, aes(x=date, y=avgprice)) +
 plot3
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
+![](README_files/figure-gfmunnamed-chunk-7-1.png)<!-- -->
 
 ``` r
 plot4 <- ggplot(VLO, aes(x=date, y=volume)) +
@@ -197,7 +197,7 @@ plot4 <- ggplot(VLO, aes(x=date, y=volume)) +
 plot4
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-10-2.png)<!-- -->
+![](README_files/figure-gfmunnamed-chunk-7-2.png)<!-- -->
 
 Now, MRO.
 
@@ -216,7 +216,7 @@ plot5 <- ggplot(MRO, aes(x=date, y=avgprice)) +
 plot5
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
+![](README_files/figure-gfmunnamed-chunk-8-1.png)<!-- -->
 
 ``` r
 plot6 <- ggplot(MRO, aes(x=date, y=volume)) +
@@ -225,7 +225,7 @@ plot6 <- ggplot(MRO, aes(x=date, y=volume)) +
 plot6
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-11-2.png)<!-- -->
+![](README_files/figure-gfmunnamed-chunk-8-2.png)<!-- -->
 
 Now, HES.
 
@@ -244,7 +244,7 @@ plot7 <- ggplot(HES, aes(x=date, y=avgprice)) +
 plot7
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-12-1.png)<!-- -->
+![](README_files/figure-gfmunnamed-chunk-9-1.png)<!-- -->
 
 ``` r
 plot8 <- ggplot(HES, aes(x=date, y=volume)) +
@@ -253,7 +253,7 @@ plot8 <- ggplot(HES, aes(x=date, y=volume)) +
 plot8
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-12-2.png)<!-- -->
+![](README_files/figure-gfmunnamed-chunk-9-2.png)<!-- -->
 
 All of the oil industry Big 3 companies show a solid increase in average
 daily stock price and consistent volume across the price increase. Safe
@@ -278,7 +278,7 @@ plot9 <- ggplot(DRIP, aes(x=date, y=avgprice)) +
 plot9
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-13-1.png)<!-- -->
+![](README_files/figure-gfmunnamed-chunk-10-1.png)<!-- -->
 
 ``` r
 plot10 <- ggplot(DRIP, aes(x=date, y=volume)) +
@@ -287,7 +287,7 @@ plot10 <- ggplot(DRIP, aes(x=date, y=volume)) +
 plot10
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-13-2.png)<!-- -->
+![](README_files/figure-gfmunnamed-chunk-10-2.png)<!-- -->
 
 Well, that looks different! DRIP clearly hasn’t followed the same
 moderate trends. Let’s see what GUSH looks like.
@@ -307,7 +307,7 @@ plot11 <- ggplot(GUSH, aes(x=date, y=avgprice)) +
 plot11
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->
+![](README_files/figure-gfmunnamed-chunk-11-1.png)<!-- -->
 
 ``` r
 plot12 <- ggplot(GUSH, aes(x=date, y=volume)) +
@@ -316,7 +316,7 @@ plot12 <- ggplot(GUSH, aes(x=date, y=volume)) +
 plot12
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-14-2.png)<!-- -->
+![](README_files/figure-gfmunnamed-chunk-11-2.png)<!-- -->
 
 As expected, since GUSH follows the industry, the price trend looks very
 similar to that of the Big 3. However, volume decreases over time

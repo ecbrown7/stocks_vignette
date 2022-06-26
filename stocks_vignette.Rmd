@@ -9,7 +9,7 @@ output:
 ---
 
 ```{r global options, include=FALSE}
-knitr::opts_chunk$set (echo = TRUE)
+knitr::opts_chunk$set(fig.path = "README_files/figure-gfm")
 ```
 
 This is a vignette to show how to retrieve data from an [API](https://aws.amazon.com/what-is/api/#:~:text=API%20stands%20for%20Application%20Programming,other%20using%20requests%20and%20responses.). To demonstrate, I'll be working with the [Polygon Financial API](https://polygon.io/docs/stocks/getting-started). For the purposes of this work, I used a free account with Polygon, limiting my data retrieval "from-date" to 2 years. 
