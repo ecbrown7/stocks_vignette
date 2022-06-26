@@ -6,7 +6,7 @@ Evan Brown
 -   [**Required Functions**](#required-functions)
 -   [**Functions for API Interaction**](#functions-for-api-interaction)
     -   [‘marketcap’ Function](#marketcap-function)
-    -   [‘aggregate’ function](#aggregate-function)
+    -   [‘dailyaggregate’ function](#dailyaggregate-function)
 -   [**Data Exploration**](#data-exploration)
 -   [**Conclusions**](#conclusions)
 
@@ -25,10 +25,10 @@ In this vignette, I will pull data from the [S&P Oil & Gas Exploration &
 Production Industry
 Index](https://www.spglobal.com/spdji/en/indices/equity/sp-oil-gas-exploration-production-select-industry-index/#data)
 and explore endpoints about a top industry constituent, [Valero Energy
-Corporation](https://finance.yahoo.com/quote/VLO/) along with some brief
-comparisons to 2 popular
-[ETF’s](https://www.investopedia.com/terms/e/etf.asp#:~:text=An%20exchange%2Dtraded%20fund%20(ETF)%20is%20a%20type%20of,that%20a%20regular%20stock%20can.)
-and make some conclusions about what I find.
+Corporation](https://finance.yahoo.com/quote/VLO/), along with 2 popular
+[ETF’s](https://www.investopedia.com/terms/e/etf.asp#:~:text=An%20exchange%2Dtraded%20fund%20(ETF)%20is%20a%20type%20of,that%20a%20regular%20stock%20can.),
+then explore the data, make some plots, and draw some conclusions about
+what I find.
 
 # **Required Functions**
 
@@ -92,7 +92,7 @@ marketcap <- function(ticker, date, apikey = "OrlbxnjeCyqGDGkKtpIqxKKs0f8Eh77C")
 }
 ```
 
-## ‘aggregate’ function
+## ‘dailyaggregate’ function
 
 This function returns daily stock endpoints for the user provided
 ticker, from date, to date, split adjustment and limit. Users should
@@ -105,7 +105,7 @@ datefrom, and dateto. Defaults for adjustment = true, sort = asc, limit
 
 ``` r
 #Create aggregate function
-aggregate<- function(ticker, datefrom, dateto, adj = "TRUE", sort = "asc", limit = 5000, apikey = "OrlbxnjeCyqGDGkKtpIqxKKs0f8Eh77C"){
+dailyaggregate<- function(ticker, datefrom, dateto, adj = "TRUE", sort = "asc", limit = 5000, apikey = "OrlbxnjeCyqGDGkKtpIqxKKs0f8Eh77C"){
   
   #Set URL partitions for all user passing options
   baseURL <- "https://api.polygon.io/v2/aggs/ticker/"
@@ -231,7 +231,7 @@ plotVLOcap <- ggplot(VLOcaps, aes(x = ticker, y = marketcap)) +
 plotVLOcap
 ```
 
-![](README_files/figure-gfmunnamed-chunk-12-1.png)<!-- -->
+![](README_files/figure-gfmunnamed-chunk-6-1.png)<!-- -->
 
 Okay, great. So the marketcap function works in allowing us to retrieve
 market cap data on a common stock oil company. Plotting those values in
@@ -259,7 +259,7 @@ and low price) and find some summary statistics:
 
 ``` r
 #Retrieving data on DRIP ticker
-VLO <- aggregate("VLO", "2020-06-25", "2022-06-25")
+VLO <- dailyaggregate("VLO", "2020-06-25", "2022-06-25")
 
 #Creating avg daily price column
 VLO$avgprice <- ((VLO$high + VLO$low)/2)
@@ -372,13 +372,13 @@ plotVLOquarter <- ggplot(quarteredVLO, aes(group = quarter, x = quarter, y=avgpr
 plotVLOmonth
 ```
 
-![](README_files/figure-gfmunnamed-chunk-15-1.png)<!-- -->
+![](README_files/figure-gfmunnamed-chunk-9-1.png)<!-- -->
 
 ``` r
 plotVLOquarter
 ```
 
-![](README_files/figure-gfmunnamed-chunk-15-2.png)<!-- -->
+![](README_files/figure-gfmunnamed-chunk-9-2.png)<!-- -->
 
 Okay. Great. That box plot looks good for understanding the monthly and
 quarterly price data. Quarter 2 has been the best quarter, but that
@@ -399,7 +399,7 @@ plotVLOhistogram <- ggplot(selectedVLO, aes(x=avgprice)) +
 plotVLOhistogram
 ```
 
-![](README_files/figure-gfmunnamed-chunk-16-1.png)<!-- -->
+![](README_files/figure-gfmunnamed-chunk-10-1.png)<!-- -->
 
 There we go. This is interesting to me. While the daily price has
 occasionally spent time north of 100, particularly in months 4 and 5
@@ -485,13 +485,13 @@ plotVLOcorr <- ggplot(VLO, aes(x=avgprice, y=volume)) +
 plotVLO
 ```
 
-![](README_files/figure-gfmunnamed-chunk-20-1.png)<!-- -->
+![](README_files/figure-gfmunnamed-chunk-14-1.png)<!-- -->
 
 ``` r
 plotVLOcorr
 ```
 
-![](README_files/figure-gfmunnamed-chunk-20-2.png)<!-- -->
+![](README_files/figure-gfmunnamed-chunk-14-2.png)<!-- -->
 
 Great, Valero has shown a solid increase in average daily stock price
 since 2020. Safe to say they have been doing well the past two years!
@@ -516,7 +516,7 @@ Let’s start with GUSH and create the avgprice variable for GUSH.
 
 ``` r
 #Retrieving data on GUSH ticker
-GUSH <- aggregate("GUSH", "2020-06-25", "2022-06-25")
+GUSH <- dailyaggregate("GUSH", "2020-06-25", "2022-06-25")
 
 #Creating avg daily price column
 GUSH$avgprice <- ((GUSH$high + GUSH$low)/2)
@@ -535,13 +535,13 @@ plotGUSHcorr <- ggplot(GUSH, aes(x=avgprice, y=volume)) +
 plotGUSH
 ```
 
-![](README_files/figure-gfmunnamed-chunk-22-1.png)<!-- -->
+![](README_files/figure-gfmunnamed-chunk-16-1.png)<!-- -->
 
 ``` r
 plotGUSHcorr
 ```
 
-![](README_files/figure-gfmunnamed-chunk-22-2.png)<!-- -->
+![](README_files/figure-gfmunnamed-chunk-16-2.png)<!-- -->
 
 As expected, GUSH price data tracks with that of VLO. Volume looks more
 correlative.
@@ -562,7 +562,7 @@ Finally, let’s look at DRIP the same way we did GUSH.
 
 ``` r
 #Retrieving data on DRIP ticker
-DRIP <- aggregate("DRIP", "2020-06-25", "2022-06-25")
+DRIP <- dailyaggregate("DRIP", "2020-06-25", "2022-06-25")
 
 #Creating avg daily price column
 DRIP$avgprice <- ((DRIP$high + DRIP$low)/2)
@@ -581,13 +581,13 @@ plotDRIPcorr <- ggplot(DRIP, aes(x=avgprice, y=volume)) +
 plotDRIP
 ```
 
-![](README_files/figure-gfmunnamed-chunk-24-1.png)<!-- -->
+![](README_files/figure-gfmunnamed-chunk-18-1.png)<!-- -->
 
 ``` r
 plotDRIPcorr
 ```
 
-![](README_files/figure-gfmunnamed-chunk-24-2.png)<!-- -->
+![](README_files/figure-gfmunnamed-chunk-18-2.png)<!-- -->
 
 As expected, DRIP price data looks inversely proportionate to that of
 GUSH. However, the correlation between volume and price looks different.
@@ -606,3 +606,27 @@ decreases, volume increases. In this case however, the relationship is
 hyperbolic. As price decreases, volume exponentially increases.
 
 # **Conclusions**
+
+In this vignette, I showed how to create functions to interact with the
+Polygon Financial api. We used those functions to retrieve data on
+market caps and aggregate stock price and volume. Then, I manipulated
+that data in an exploratory data analysis and made some plots along the
+way. As an example, I worked with VLO, DRIP and GUSH, all related to the
+S&P Oil and Gas Exploratory Industry Index.
+
+As an indicator of the index, VLO showed marketcap and subsequent price
+increases year over year since 2020, with quarter 2 being the best
+quarter for growth. I found that while some outliers exist, the average
+stock price of VLO has remained between 55 and 80 dollars. Using
+contingency tables, I found that since 2020, VLO has almost the same
+amount of net daily gains as it does losses, lending to suggest big
+daily gains and small daily losses over time.
+
+I then looked at the relationship between price and volume for VLO, DRIP
+and GUSH. Correlation between the two endpoints was low for VLO, but a
+fairly strong inverse correlation for the two ETF’s, implying that as
+price goes down, volume goes up. VLO and the oil & gas industry as a
+whole has done well since 2020, leaving DRIP crashing to an all time low
+within the time frame evaluated. I’ll be interested to continue
+monitoring these metrics to look for a shift in price and volume trends
+going forward.

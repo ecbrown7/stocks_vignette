@@ -14,7 +14,7 @@ knitr::opts_chunk$set(fig.path = "README_files/figure-gfm")
 
 This is a vignette to show how to retrieve data from an [API](https://aws.amazon.com/what-is/api/#:~:text=API%20stands%20for%20Application%20Programming,other%20using%20requests%20and%20responses.). To demonstrate, I'll be working with the [Polygon Financial API](https://polygon.io/docs/stocks/getting-started). For the purposes of this work, I used a free account with Polygon, limiting my data retrieval "from-date" to 2 years. Due to this limitation, I will keep all function calls limited to 2 years from the completion date of this project (2020-06-25 - 2022-06-25). Users of the functions after this date with an apikey corresponding to a free account will need to pass more recent dates.
 
-In this vignette, I will pull data from the [S&P Oil & Gas Exploration & Production Industry Index](https://www.spglobal.com/spdji/en/indices/equity/sp-oil-gas-exploration-production-select-industry-index/#data) and explore endpoints about a top industry constituent, [Valero Energy Corporation](https://finance.yahoo.com/quote/VLO/) along with some brief comparisons to 2 popular [ETF's](https://www.investopedia.com/terms/e/etf.asp#:~:text=An%20exchange%2Dtraded%20fund%20(ETF)%20is%20a%20type%20of,that%20a%20regular%20stock%20can.) and make some conclusions about what I find. 
+In this vignette, I will pull data from the [S&P Oil & Gas Exploration & Production Industry Index](https://www.spglobal.com/spdji/en/indices/equity/sp-oil-gas-exploration-production-select-industry-index/#data) and explore endpoints about a top industry constituent, [Valero Energy Corporation](https://finance.yahoo.com/quote/VLO/), along with 2 popular [ETF's](https://www.investopedia.com/terms/e/etf.asp#:~:text=An%20exchange%2Dtraded%20fund%20(ETF)%20is%20a%20type%20of,that%20a%20regular%20stock%20can.), then explore the data, make some plots, and draw some conclusions about what I find. 
 
 # **Required Functions**
 
@@ -81,7 +81,7 @@ marketcap <- function(ticker, date, apikey = "OrlbxnjeCyqGDGkKtpIqxKKs0f8Eh77C")
 
 ```
 
-## 'aggregate' function
+## 'dailyaggregate' function
 
 This function returns daily stock endpoints for the user provided ticker, from date, to date, split adjustment and limit. Users should pass dates in the form of "YYYY-MM-DD" (e.g. "2021-06-01"). apikey default is my key, but users of the function should pass their own key in the function call options. User keys can be generated [here](https://polygon.io/).
 Note: Only required options are ticker, datefrom, and dateto. Defaults for adjustment = true, sort = asc, limit = 5000. 
@@ -89,7 +89,7 @@ Note: Only required options are ticker, datefrom, and dateto. Defaults for adjus
 ```{r, echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE}
 
 #Create aggregate function
-aggregate<- function(ticker, datefrom, dateto, adj = "TRUE", sort = "asc", limit = 5000, apikey = "OrlbxnjeCyqGDGkKtpIqxKKs0f8Eh77C"){
+dailyaggregate<- function(ticker, datefrom, dateto, adj = "TRUE", sort = "asc", limit = 5000, apikey = "OrlbxnjeCyqGDGkKtpIqxKKs0f8Eh77C"){
   
   #Set URL partitions for all user passing options
   baseURL <- "https://api.polygon.io/v2/aggs/ticker/"
@@ -191,7 +191,7 @@ Now, let's dive in a little deeper and use the aggregate function to retrieve so
 Let's start by exploring VLO. Here, let's get some data from the api for VLO, then create the daily average price variable (average of daily high and low price) and find some summary statistics:
 ```{r, echo = TRUE, eval = TRUE, warning=FALSE, message=FALSE}
 #Retrieving data on DRIP ticker
-VLO <- aggregate("VLO", "2020-06-25", "2022-06-25")
+VLO <- dailyaggregate("VLO", "2020-06-25", "2022-06-25")
 
 #Creating avg daily price column
 VLO$avgprice <- ((VLO$high + VLO$low)/2)
@@ -330,7 +330,7 @@ And there we go, a correlation of 0.1 is almost completely neutral, indicating t
 Let's start with GUSH and create the avgprice variable for GUSH.
 ```{r, echo = TRUE, eval = TRUE, warning=FALSE, message=FALSE}
 #Retrieving data on GUSH ticker
-GUSH <- aggregate("GUSH", "2020-06-25", "2022-06-25")
+GUSH <- dailyaggregate("GUSH", "2020-06-25", "2022-06-25")
 
 #Creating avg daily price column
 GUSH$avgprice <- ((GUSH$high + GUSH$low)/2)
@@ -362,7 +362,7 @@ Yes, a correlation of -0.59 is much more correlative than VLO. The mildy strong 
 Finally, let's look at DRIP the same way we did GUSH. 
 ```{r, echo = TRUE, eval = TRUE, warning=FALSE, message=FALSE}
 #Retrieving data on DRIP ticker
-DRIP <- aggregate("DRIP", "2020-06-25", "2022-06-25")
+DRIP <- dailyaggregate("DRIP", "2020-06-25", "2022-06-25")
 
 #Creating avg daily price column
 DRIP$avgprice <- ((DRIP$high + DRIP$low)/2)
@@ -394,6 +394,11 @@ Similar to GUSH, DRIP volume and price correlation is a mildy strong negative co
 
 # **Conclusions**
 
+In this vignette, I showed how to create functions to interact with the Polygon Financial api. We used those functions to retrieve data on market caps and aggregate stock price and volume. Then, I manipulated that data in an exploratory data analysis and made some plots along the way. As an example, I worked with VLO, DRIP and GUSH, all related to the S&P Oil and Gas Exploratory Industry Index. 
+
+As an indicator of the index, VLO showed marketcap and subsequent price increases year over year since 2020, with quarter 2 being the best quarter for growth. I found that while some outliers exist, the average stock price of VLO has remained between 55 and 80 dollars. Using contingency tables, I found that since 2020, VLO has almost the same amount of net daily gains as it does losses, lending to suggest big daily gains and small daily losses over time. 
+
+I then looked at the relationship between price and volume for VLO, DRIP and GUSH. Correlation between the two endpoints was low for VLO, but a fairly strong inverse correlation for the two ETF's, implying that as price goes down, volume goes up. VLO and the oil & gas industry as a whole has done well since 2020, leaving DRIP crashing to an all time low within the time frame evaluated. I'll be interested to continue monitoring these metrics to look for a shift in price and volume trends going forward. 
 
 
 
