@@ -132,25 +132,25 @@ with the Polygon Financial API to retrieve some data and look at some of
 the endpoints.
 
 The S&P Oil & Gas Exploration & Production Industry Index is comprised
-of 61 constituents. In this, we’ll take a look at 3 of the biggest
-common stock contributors: Valero Energy Corporation (VLO), Marathon Oil
-Corporation (MRO), and Southwestern Energy Company (SWN). Additionally
-in the latter part of this section, we’ll take a look at 2 ETF’s that
-follow this industry index. DRIP is a 2x leveraged *inverse* ETF,
-meaning DRIP returns 2x the inverse of the daily oil industry index
-performance. Conversely, GUSH tracks with the index and is a standard 2x
-leveraged ETF. Using data from the api, we’ll look into some basic stock
-endpoints, look at trends since 2020, and show some differences in the
-“Big 3” common stocks versus ETFs.
+of 61 constituents. In this, we’ll just take a look at one of the
+biggest common stock contributors, Valero Energy Corporation (VLO), to
+see generally how the oil industry has been doing. Additionally, in the
+latter part of this section, we’ll take a look at 2 ETF’s that follow
+this industry index. DRIP is a 2x leveraged *inverse* ETF, meaning DRIP
+returns 2x the inverse of the daily oil industry index performance.
+Conversely, GUSH tracks with the index and is a standard 2x leveraged
+ETF. Using data from the api, we’ll look into some basic stock
+endpoints, look at trends since 2020, and show some differences between
+VLO and those ETF’s.
 
 Let’s start with some simple application of the market cap function.
 This function queries the polygon api and returns the ticker of your
 search, marketcap, and year of you search. Here, I’m going to get the
-market cap value for each Big 3 ticker in 2020, 2021 and 2022 (in June
-of each year). Then, I’m going to make a bar plot of the market caps by
+market cap value for the VLO ticker in 2020, 2021 and 2022 (in June of
+each year). Then, I’m going to make a bar plot of the market caps by
 year to look for any trends.
 
-Starting with VLO:
+VLO:
 
 ``` r
 #Getting market cap for 2020 (non-weekend)
@@ -178,63 +178,26 @@ plota <- ggplot(VLOcaps, aes(x = ticker, y = marketcap)) +
 plota
 ```
 
-![](README_files/figure-gfmunnamed-chunk-5-1.png)<!-- -->
+![](README_files/figure-gfmunnamed-chunk-4-1.png)<!-- -->
 
 Okay, so clearly an increase in market cap for VLO each year since 2020.
-Let’s see if the others follow that trend.
 
 MRO:
-
-``` r
-#Getting market cap for 2020 (non-weekend)
-MROcap_20 <- marketcap("MRO", "2020-06-26")
-  #Getting marketcap for 2021
-  MROcap_21 <- marketcap("MRO", "2021-06-25")
-    #Getting market cap for 2022
-    MROcap_22 <- marketcap("MRO", "2022-06-24")
-```
-
-    ## Warning: Unknown or uninitialised column: `ticker`.
-
-    ## Warning: Unknown or uninitialised column: `market_cap`.
-
-``` r
-#Putting these caps together to create a dataset to plot from
-MROcaps <- as_tibble(bind_rows(MROcap_20, MROcap_21, MROcap_22))
-
-#Changing market cap to a numeric value for better plotting
-MROcaps$marketcap <- as.numeric(MROcaps$marketcap)
-
-#Plotting market cap for VLO over past 2 years
-plotb <- ggplot(MROcaps, aes(x = ticker, y = marketcap)) +
-  #Create side-by-side bar plot filled by year
-  geom_bar(aes(fill=year), stat = "identity", position = "dodge") +
-  #Add title and labels
-  labs( x = "Ticker", y = "Market Cap", title = "MRO Market Cap by Year") +
-  #Set legend title
-  scale_fill_discrete(name = "Year") 
-
-plotb
-```
-
-    ## Warning: Removed 1 rows containing missing values (geom_bar).
-
-![](README_files/figure-gfmunnamed-chunk-6-1.png)<!-- -->
 
 SWN:
 
 Okay, so the marketcap function works in allowing us to retrieve market
-cap data on the Big 3 oil companies. Plotting those values in a bar plot
-by year let us see that each of the Big 3 oil companies have increased
-market cap significantly each year since 2020.
+cap data on a common stock oil company. Plotting those values in a bar
+plot by year let us see that Valero Oil has increased market cap
+significantly each year since 2020.
 
 Now, let’s switch gears and use the aggregate function to retrieve some
 data from the oil industry regarding stock price and stock volume.
-First, we’ll take a look at the oil industry Big 3 again to explore
-price and volume, then take a look at the 2 popular leveraged ETF’s of
-the index: DRIP (2x inverse) and GUSH (2x), to see if the ETF’s follow a
-different trend than the common stocks. Since DRIP is an inverse, we
-should expect the price trends to be inverse that of all other stocks.
+First, we’ll take a look at Valero again to explore price and volume,
+then take a look at the 2 popular leveraged ETF’s of the index: DRIP (2x
+inverse) and GUSH (2x), to see if the ETF’s follow a different trend
+than the common stocks. Since DRIP is an inverse, we should expect the
+price trends to be inverse that of all other stocks.
 
 Let’s start by exploring VLO:
 
@@ -253,7 +216,7 @@ plot3 <- ggplot(VLO, aes(x=date, y=avgprice)) +
 plot3
 ```
 
-![](README_files/figure-gfmunnamed-chunk-8-1.png)<!-- -->
+![](README_files/figure-gfmunnamed-chunk-7-1.png)<!-- -->
 
 ``` r
 plot4 <- ggplot(VLO, aes(x=date, y=volume)) +
@@ -262,67 +225,15 @@ plot4 <- ggplot(VLO, aes(x=date, y=volume)) +
 plot4
 ```
 
-![](README_files/figure-gfmunnamed-chunk-8-2.png)<!-- -->
+![](README_files/figure-gfmunnamed-chunk-7-2.png)<!-- -->
 
 MRO:
 
-``` r
-#Retrieving data on DRIP ticker
-MRO <- aggregate("MRO")
-
-#Creating avg daily price column
-MRO$avgprice <- ((MRO$high + MRO$low)/2)
-
-#Quick plot of average daily price over the past 2 years
-plot5 <- ggplot(MRO, aes(x=date, y=avgprice)) +
-  geom_point() +
-  geom_smooth() +
-  labs( x = "Date", y = "Avg Daily Price", title = "MRO Average Daily Price Data")
-plot5
-```
-
-![](README_files/figure-gfmunnamed-chunk-9-1.png)<!-- -->
-
-``` r
-plot6 <- ggplot(MRO, aes(x=date, y=volume)) +
-  geom_point() +
-  labs( x = "Date", y = "Volume", title = "MRO Volume Data")
-plot6
-```
-
-![](README_files/figure-gfmunnamed-chunk-9-2.png)<!-- -->
-
 SWN:
 
-``` r
-#Retrieving data on DRIP ticker
-SWN <- aggregate("SWN")
-
-#Creating avg daily price column
-SWN$avgprice <- ((SWN$high + SWN$low)/2)
-
-#Quick plot of average daily price over the past 2 years
-plot7 <- ggplot(SWN, aes(x=date, y=avgprice)) +
-  geom_point() +
-  geom_smooth() +
-  labs( x = "Date", y = "Avg Daily Price", title = "SWN Average Daily Price Data")
-plot7
-```
-
-![](README_files/figure-gfmunnamed-chunk-10-1.png)<!-- -->
-
-``` r
-plot8 <- ggplot(SWN, aes(x=date, y=volume)) +
-  geom_point() +
-  labs( x = "Date", y = "Volume", title = "SWN Volume Data")
-plot8
-```
-
-![](README_files/figure-gfmunnamed-chunk-10-2.png)<!-- -->
-
-All of the oil industry Big 3 companies show a solid increase in average
-daily stock price and consistent volume across the price increase. Safe
-to say these companies have been doing well the past two years!
+Valero has shown a solid increase in average daily stock price and
+consistent volume across the price increase. Safe to say they have been
+doing well the past two years!
 
 Now, let’s look at those leveraged ETF’s, starting with the inverse,
 DRIP:
@@ -342,7 +253,7 @@ plot9 <- ggplot(DRIP, aes(x=date, y=avgprice)) +
 plot9
 ```
 
-![](README_files/figure-gfmunnamed-chunk-11-1.png)<!-- -->
+![](README_files/figure-gfmunnamed-chunk-10-1.png)<!-- -->
 
 ``` r
 plot10 <- ggplot(DRIP, aes(x=date, y=volume)) +
@@ -351,13 +262,13 @@ plot10 <- ggplot(DRIP, aes(x=date, y=volume)) +
 plot10
 ```
 
-![](README_files/figure-gfmunnamed-chunk-11-2.png)<!-- -->
+![](README_files/figure-gfmunnamed-chunk-10-2.png)<!-- -->
 
 Well, that looks different! As expected, the inverse ETF has a trend
-opposite the Big 3 index stocks. However, what stands out to me is the
-volume scatter plot. Volume seems to have gone hyperbolic in the year
-2022, perhaps because price is so low and buyers expect a pull back from
-the impressive increase in the Big 3.
+opposite the oil industry index stocks. However, what stands out to me
+is the volume scatter plot. Volume seems to have gone hyperbolic in the
+year 2022, perhaps because price is so low and buyers expect a pull back
+from the impressive increase in the oil industry.
 
 Let’s see about GUSH:
 
@@ -376,7 +287,7 @@ plot11 <- ggplot(GUSH, aes(x=date, y=avgprice)) +
 plot11
 ```
 
-![](README_files/figure-gfmunnamed-chunk-12-1.png)<!-- -->
+![](README_files/figure-gfmunnamed-chunk-11-1.png)<!-- -->
 
 ``` r
 plot12 <- ggplot(GUSH, aes(x=date, y=volume)) +
@@ -385,10 +296,9 @@ plot12 <- ggplot(GUSH, aes(x=date, y=volume)) +
 plot12
 ```
 
-![](README_files/figure-gfmunnamed-chunk-12-2.png)<!-- -->
+![](README_files/figure-gfmunnamed-chunk-11-2.png)<!-- -->
 
 As expected, since GUSH follows the industry, the price trend looks very
 similar to that of the Big 3. However, volume has decreased over time
-significantly more than those Big 3 companies. It certainly seems like
-the tide is turning away from a bullish oil market and more towards a
-bearish one.
+significantly more than Valero. It certainly seems like the tide is
+turning away from a bullish oil market and more towards a bearish one.
