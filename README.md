@@ -178,7 +178,7 @@ plota <- ggplot(VLOcaps, aes(x = ticker, y = marketcap)) +
 plota
 ```
 
-![](README_files/figure-gfmunnamed-chunk-4-1.png)<!-- -->
+![](README_files/figure-gfmunnamed-chunk-140-1.png)<!-- -->
 
 Okay, so the marketcap function works in allowing us to retrieve market
 cap data on a common stock oil company. Plotting those values in a bar
@@ -187,13 +187,20 @@ significantly each year since 2020.
 
 Now, let’s switch gears and use the aggregate function to retrieve some
 data from the oil industry regarding stock price and stock volume.
-First, we’ll take a look at Valero again to explore price and volume,
-then take a look at the 2 popular leveraged ETF’s of the index: DRIP (2x
-inverse) and GUSH (2x), to see if the ETF’s follow a different trend
-than the common stocks. Since DRIP is an inverse, we should expect the
-price trends to be inverse that of all other stocks.
+First, we’ll take a look at Valero and evaluate some summary statistics
+then create a variable mapping price to annual quarter to explore which
+quarter VLO performed best in over the past year. Then, we’ll create a
+histogram of price data to see which range VLO has spent the most time
+in over the past year. Finally, we’ll take a look at Valero again to
+explore price and volume, then take a look at the 2 popular leveraged
+ETF’s of the index: DRIP (2x inverse) and GUSH (2x), to see if the ETF’s
+follow a different trend than the common stocks. Since DRIP is an
+inverse, we should expect the price trends to be inverse that of all
+other stocks.
 
-Let’s start by exploring VLO:
+Let’s start by exploring VLO. Here, let’s create the daily average price
+variable (average of daily high and low price) and find some summary
+statistics:
 
 ``` r
 #Retrieving data on DRIP ticker
@@ -202,6 +209,156 @@ VLO <- aggregate("VLO")
 #Creating avg daily price column
 VLO$avgprice <- ((VLO$high + VLO$low)/2)
 
+#Select variables to create summary statistics for
+VLOselect <- select(VLO, -2, -7:-8)
+
+#Use select to reorder the columns with avgprice first
+selectedVLO <- select(VLOselect, 7, 1:6)
+
+#Create basic summary statistics for VLO, excluding date
+summary(selectedVLO[1:6])
+```
+
+    ##     avgprice          volume              open            close             high       
+    ##  Min.   : 36.59   Min.   : 1385850   Min.   : 35.79   Min.   : 36.19   Min.   : 37.67  
+    ##  1st Qu.: 58.11   1st Qu.: 3298204   1st Qu.: 57.67   1st Qu.: 57.95   1st Qu.: 59.30  
+    ##  Median : 71.41   Median : 4049922   Median : 71.33   Median : 71.39   Median : 72.51  
+    ##  Mean   : 73.53   Mean   : 4431341   Mean   : 73.51   Mean   : 73.54   Mean   : 74.87  
+    ##  3rd Qu.: 81.72   3rd Qu.: 5085740   3rd Qu.: 81.75   3rd Qu.: 81.54   3rd Qu.: 82.91  
+    ##  Max.   :144.81   Max.   :19637591   Max.   :144.43   Max.   :145.08   Max.   :146.81  
+    ##       low        
+    ##  Min.   : 35.44  
+    ##  1st Qu.: 56.66  
+    ##  Median : 70.50  
+    ##  Mean   : 72.18  
+    ##  3rd Qu.: 80.30  
+    ##  Max.   :142.81
+
+Good. Now we have some basic idea of some summary statistics for the VLO
+ticker over the past year. Now, let’s group this into years and yearly
+quarters and see where VLO performed the best.
+
+``` r
+#Create month variable to map quarters to
+selectedVLO <- selectedVLO %>% mutate(month = substr(date, 6, 7))
+
+#Create year variable
+selectedVLO <- selectedVLO %>% mutate(year = substr(date, 1, 4))
+
+#Coerc new vars to numeric
+selectedVLO$month <- as.numeric(selectedVLO$month)
+selectedVLO$year <- as.numeric(selectedVLO$year)
+
+#Annual quarters are:
+    #Quarter 1: Jan 1 - Mar 31
+    #Quarter 2: Apr 1 - June 30
+    #Quarter 3: Jul 1 - Sep 30
+    #Quarter 4: Oct 1 - Dec 31
+#Map an annual quarters variable based on month of data
+quarteredVLO <- selectedVLO %>% mutate(quarter = if_else(month >= 10, "Quarter 4", 
+                                                         if_else(month >= 7, "Quarter 3",
+                                                                 if_else(month >= 4, "Quarter 2", "Quarter 1"))))
+
+#Getting summary stats on each quarter and year
+avgpriceMonthly <- quarteredVLO %>% group_by(month) %>% summarise(mean = mean(avgprice), sd = sd(avgprice)) 
+avgpriceMonthly
+```
+
+    ## # A tibble: 12 × 3
+    ##    month  mean    sd
+    ##    <dbl> <dbl> <dbl>
+    ##  1     1  70.3 11.6 
+    ##  2     2  77.5 10.9 
+    ##  3     3  83.4  8.66
+    ##  4     4  88.2 16.9 
+    ##  5     5 102.  23.0 
+    ##  6     6  98.1 27.5 
+    ##  7     7  62.0  7.52
+    ##  8     8  59.6  6.11
+    ##  9     9  56.7 10.0 
+    ## 10    10  59.1 19.2 
+    ## 11    11  62.6 13.4 
+    ## 12    12  63.9  7.31
+
+``` r
+avgpriceYearly <- quarteredVLO %>% group_by(year) %>% summarise(mean = mean(avgprice), sd = sd(avgprice)) 
+avgpriceYearly
+```
+
+    ## # A tibble: 3 × 3
+    ##    year  mean    sd
+    ##   <dbl> <dbl> <dbl>
+    ## 1  2020  50.9  6.43
+    ## 2  2021  71.7  7.06
+    ## 3  2022 102.  18.9
+
+Now we can see some summary stats (mean and standard deviation) for
+VLO’s average daily price for each month and year. Now let’s plot these
+and visualize that data.
+
+``` r
+plotVLOmonth <- ggplot(avgpriceMonthly, aes(x=month, y=mean)) +
+  geom_bar(stat = "identity") + 
+  scale_x_continuous(breaks = seq(0, 12, by=1)) +
+  labs( x = "Month", y = "Avg Price", title = "VLO Monthly Average Price")
+
+plotVLOyear <- ggplot(avgpriceYearly, aes(x=year, y=mean)) +
+  geom_bar(stat = "identity") + 
+  labs( x = "Year", y = "Avg Price", title = "VLO Yearly Average Price")
+
+plotVLOmonth
+```
+
+![](README_files/figure-gfmunnamed-chunk-143-1.png)<!-- -->
+
+``` r
+plotVLOyear
+```
+
+![](README_files/figure-gfmunnamed-chunk-143-2.png)<!-- -->
+
+That’s pretty helpful, particularly the yearly bar plot. But I think the
+monthly average price bar plot leaves much to be desired. Let’s try
+plotting this as a box plot so we can capture the full set of summary
+statistics for each month, not just the mean.
+
+``` r
+plotVLObox <- ggplot(quarteredVLO, aes(group = month, x = month, y=avgprice)) +
+  geom_boxplot() +
+  scale_x_continuous(breaks = seq(0, 12, by=1)) +
+  labs( x = "Month", y = "Avg Price", title = "VLO Monthly Average Price Boxplot")
+
+plotVLObox
+```
+
+![](README_files/figure-gfmunnamed-chunk-144-1.png)<!-- -->
+
+Okay. Great. That box plot looks much better for understanding the
+monthly price data. In the bar plot of average monthly price, month 5
+seemed to be the highest. However with the boxplot, we can Now we can
+interpret the large inter-quartile range with far reaching outliers as a
+month of transition.
+
+Since the price is so wide ranging, let’s look at grouping the stock
+price into bins to see where VLO has spent the most time in. We’ll plot
+this as a histogram and this should give a good idea of where the VLO
+price has been hanging around at for the majority of the time.
+
+``` r
+plotVLOhistogram <- ggplot(selectedVLO, aes(x=avgprice)) +
+  geom_histogram(color="black", binwidth = 3) +
+  labs( x = "Average Price", y = "Count", title = "VLO Average Price Histogram")
+
+plotVLOhistogram
+```
+
+![](README_files/figure-gfmunnamed-chunk-145-1.png)<!-- -->
+
+This is interesting. While the daily price has occasionally spent time
+north of 100, in months 4 and 5 from the box plot, the majority of daily
+price counts have been between 55 and 80 dollars.
+
+``` r
 #Quick plot of average daily price over the past 2 years
 plotVLO <- ggplot(VLO, aes(x=date, y=avgprice)) +
   geom_point() +
@@ -215,13 +372,13 @@ plotVLOv <- ggplot(VLO, aes(x=date, y=volume)) +
 plotVLO
 ```
 
-![](README_files/figure-gfmunnamed-chunk-5-1.png)<!-- -->
+![](README_files/figure-gfmunnamed-chunk-146-1.png)<!-- -->
 
 ``` r
 plotVLOv
 ```
 
-![](README_files/figure-gfmunnamed-chunk-5-2.png)<!-- -->
+![](README_files/figure-gfmunnamed-chunk-146-2.png)<!-- -->
 
 Valero has shown a solid increase in average daily stock price and
 consistent volume across the price increase. Safe to say they have been
@@ -251,13 +408,13 @@ plotDRIPv <- ggplot(DRIP, aes(x=date, y=volume)) +
 plotDRIP
 ```
 
-![](README_files/figure-gfmunnamed-chunk-6-1.png)<!-- -->
+![](README_files/figure-gfmunnamed-chunk-147-1.png)<!-- -->
 
 ``` r
 plotDRIPv
 ```
 
-![](README_files/figure-gfmunnamed-chunk-6-2.png)<!-- -->
+![](README_files/figure-gfmunnamed-chunk-147-2.png)<!-- -->
 
 Well, that looks different! As expected, the inverse ETF has a trend
 opposite the oil industry index stocks. However, what stands out to me
@@ -288,13 +445,13 @@ plotGUSHv <- ggplot(GUSH, aes(x=date, y=volume)) +
 plotGUSH
 ```
 
-![](README_files/figure-gfmunnamed-chunk-7-1.png)<!-- -->
+![](README_files/figure-gfmunnamed-chunk-148-1.png)<!-- -->
 
 ``` r
 plotGUSHv
 ```
 
-![](README_files/figure-gfmunnamed-chunk-7-2.png)<!-- -->
+![](README_files/figure-gfmunnamed-chunk-148-2.png)<!-- -->
 
 As expected, since GUSH follows the industry, the price trend looks very
 similar to that of the Big 3. However, volume has decreased over time
