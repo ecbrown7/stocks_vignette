@@ -6,7 +6,7 @@ Evan Brown
 -   [**Required Functions**](#required-functions)
 -   [**Functions for API Interaction**](#functions-for-api-interaction)
     -   [‘marketcap’ Function](#marketcap-function)
-    -   [‘dailyaggregate’ function](#dailyaggregate-function)
+    -   [‘aggregate’ function](#aggregate-function)
 -   [**Data Exploration**](#data-exploration)
 -   [**Conclusions**](#conclusions)
 
@@ -47,7 +47,8 @@ interacting with the Polygon Financial API.
 
 This function returns the [market
 cap](https://www.investopedia.com/terms/m/marketcapitalization.asp) for
-the user provided ticker and date. apikey default is my key, but users
+the user provided ticker and date. Users should pass dates in the form
+of “YYYY-MM-DD” (e.g. “2021-06-01”). apikey default is my key, but users
 of the function should pass their own key in the function call options.
 User keys can be generated [here](https://polygon.io/).
 
@@ -91,7 +92,7 @@ marketcap <- function(ticker, date, apikey = "OrlbxnjeCyqGDGkKtpIqxKKs0f8Eh77C")
 }
 ```
 
-## ‘dailyaggregate’ function
+## ‘aggregate’ function
 
 This function returns daily stock endpoints for the user provided
 ticker, from date, to date, split adjustment and limit. Users should
@@ -230,7 +231,7 @@ plotVLOcap <- ggplot(VLOcaps, aes(x = ticker, y = marketcap)) +
 plotVLOcap
 ```
 
-![](README_files/figure-gfmunnamed-chunk-57-1.png)<!-- -->
+![](README_files/figure-gfmunnamed-chunk-12-1.png)<!-- -->
 
 Okay, great. So the marketcap function works in allowing us to retrieve
 market cap data on a common stock oil company. Plotting those values in
@@ -371,21 +372,20 @@ plotVLOquarter <- ggplot(quarteredVLO, aes(group = quarter, x = quarter, y=avgpr
 plotVLOmonth
 ```
 
-![](README_files/figure-gfmunnamed-chunk-60-1.png)<!-- -->
+![](README_files/figure-gfmunnamed-chunk-15-1.png)<!-- -->
 
 ``` r
 plotVLOquarter
 ```
 
-![](README_files/figure-gfmunnamed-chunk-60-2.png)<!-- -->
+![](README_files/figure-gfmunnamed-chunk-15-2.png)<!-- -->
 
 Okay. Great. That box plot looks good for understanding the monthly and
 quarterly price data. Quarter 2 has been the best quarter, but that
 looks to be a result of a strong month 5 (May). Despite the IQR being
 similar in price, he median for month 6 is much lower than the median
 for month 5, indicating there were some high price outliers in month 6
-skewing the stats high. Overall, we now have a good understanding of how
-VLO’s stock has performed since 2020.
+skewing the stats high.
 
 Since there may be outliers skewing the price high, let’s take a quick
 look at grouping the stock price into bins to see which price range VLO
@@ -399,13 +399,69 @@ plotVLOhistogram <- ggplot(selectedVLO, aes(x=avgprice)) +
 plotVLOhistogram
 ```
 
-![](README_files/figure-gfmunnamed-chunk-61-1.png)<!-- -->
+![](README_files/figure-gfmunnamed-chunk-16-1.png)<!-- -->
 
 There we go. This is interesting to me. While the daily price has
 occasionally spent time north of 100, particularly in months 4 and 5
 from the box plot, the majority of daily price counts have been between
 55 and 80 dollars. If you’re looking to invest, it seems like below 70
 may be a good buy, and above 90 may be a good sell.
+
+Let’s look at this stock from another angle. Daily gain/loss is a good
+way to test market sentiment over periods of time. Daily gain loss can
+be calculated by subtracting the daily open price from the daily close.
+If the result is a positive, we’ll call that a net daily gain. If it’s
+negative, we’ll call that a net daily loss. Let’s create this variable
+and create a contingency table to see how many net daily gains and net
+daily losses VLO has had over the past 2 years.
+
+``` r
+#Create daily differences
+diff <- quarteredVLO$close - quarteredVLO$open
+
+#Create daily performance variable
+contingencydata <- quarteredVLO %>% mutate(dailyperformance = if_else(diff > 0, "gain", 
+                                                         if_else(diff < 0, "loss", "no change")))
+
+#Create contingency table for count of gains, losses, and no changes over the past 2 years
+table(contingencydata$dailyperformance)
+```
+
+    ## 
+    ##      gain      loss no change 
+    ##       254       245         4
+
+Alright, a few more gains than losses, but overall, about neutral for
+net daily gains or losses over the past 2 years. Let’s break this down
+by year and see if we can get a better insight.
+
+``` r
+#Create contingency table for count of gains, losses, and no changes by year
+table(contingencydata$dailyperformance, contingencydata$year)
+```
+
+    ##            
+    ##             2020 2021 2022
+    ##   gain        63  127   64
+    ##   loss        67  122   56
+    ##   no change    2    2    0
+
+Okay, so more losses in 2020, then more gains in 2021 and 2022.
+Interesting. Let’s go once further and break this down by month.
+
+``` r
+#Create contingency table for count of gains, losses, and no changes by month
+table(contingencydata$dailyperformance, contingencydata$month)
+```
+
+    ##            
+    ##              1  2  3  4  5  6  7  8  9 10 11 12
+    ##   gain      20 23 27 20 21 17 21 22 20 23 18 22
+    ##   loss      19 15 19 21 20 25 22 21 20 20 21 22
+    ##   no change  0  0  0  0  0  0  0  0  2  0  2  0
+
+Alright very interesting, talk about a strong month 2 and 3 over the
+past 2 years.
 
 Now, let’s take a break from the grouped analysis and look at raw daily
 price and volume data. I am interested in how volume and price have
@@ -429,13 +485,13 @@ plotVLOcorr <- ggplot(VLO, aes(x=avgprice, y=volume)) +
 plotVLO
 ```
 
-![](README_files/figure-gfmunnamed-chunk-62-1.png)<!-- -->
+![](README_files/figure-gfmunnamed-chunk-20-1.png)<!-- -->
 
 ``` r
 plotVLOcorr
 ```
 
-![](README_files/figure-gfmunnamed-chunk-62-2.png)<!-- -->
+![](README_files/figure-gfmunnamed-chunk-20-2.png)<!-- -->
 
 Great, Valero has shown a solid increase in average daily stock price
 since 2020. Safe to say they have been doing well the past two years!
@@ -479,14 +535,16 @@ plotGUSHcorr <- ggplot(GUSH, aes(x=avgprice, y=volume)) +
 plotGUSH
 ```
 
-![](README_files/figure-gfmunnamed-chunk-64-1.png)<!-- -->
+![](README_files/figure-gfmunnamed-chunk-22-1.png)<!-- -->
 
 ``` r
 plotGUSHcorr
 ```
 
-![](README_files/figure-gfmunnamed-chunk-64-2.png)<!-- --> As expected,
-GUSH price data tracks with that of VLO.
+![](README_files/figure-gfmunnamed-chunk-22-2.png)<!-- -->
+
+As expected, GUSH price data tracks with that of VLO. Volume looks more
+correlative.
 
 Let’s check the correlation of GUSH volume and price.
 
@@ -496,9 +554,9 @@ cor(GUSH$volume, GUSH$avgprice)
 
     ## [1] -0.5914456
 
-Okay, a correlation of -0.59 is much more correlative than VLO. The
-mildy strong negative correlation indicates that as stock price
-decrease, trading volume increases.
+Yes, a correlation of -0.59 is much more correlative than VLO. The mildy
+strong negative correlation indicates that as stock price increases,
+trading volume decreases.
 
 Finally, let’s look at DRIP the same way we did GUSH.
 
@@ -523,15 +581,16 @@ plotDRIPcorr <- ggplot(DRIP, aes(x=avgprice, y=volume)) +
 plotDRIP
 ```
 
-![](README_files/figure-gfmunnamed-chunk-66-1.png)<!-- -->
+![](README_files/figure-gfmunnamed-chunk-24-1.png)<!-- -->
 
 ``` r
 plotDRIPcorr
 ```
 
-![](README_files/figure-gfmunnamed-chunk-66-2.png)<!-- --> As expected,
-DRIP price data looks inversely proportionate to that of GUSH. However,
-the correlation between volume and price looks different!
+![](README_files/figure-gfmunnamed-chunk-24-2.png)<!-- -->
+
+As expected, DRIP price data looks inversely proportionate to that of
+GUSH. However, the correlation between volume and price looks different.
 
 Let’s check the correlation value.
 
@@ -543,6 +602,7 @@ cor(DRIP$volume, DRIP$avgprice)
 
 Similar to GUSH, DRIP volume and price correlation is a mildy strong
 negative correlation of -0.45, indicating that once again, as ETF price
-decreases, volume increases.
+decreases, volume increases. In this case however, the relationship is
+hyperbolic. As price decreases, volume exponentially increases.
 
 # **Conclusions**
