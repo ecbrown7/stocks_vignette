@@ -394,11 +394,11 @@ Similar to GUSH, DRIP volume and price correlation is a mildy strong negative co
 
 # **Conclusions**
 
-In this vignette, I showed how to create functions to interact with the Polygon Financial api. We used those functions to retrieve data on market caps and aggregate stock price and volume. Then, I manipulated that data in an exploratory data analysis and made some plots along the way. As an example, I worked with VLO, DRIP and GUSH, all related to the S&P Oil and Gas Exploratory Industry Index. 
+In this vignette, I showed how to create functions to interact with the Polygon Financial api. I used those functions to retrieve data on market caps and aggregate stock price and volume. Then, I manipulated that data in an exploratory data analysis and made some plots along the way. As an example, I worked with VLO, DRIP and GUSH, all related to the S&P Oil and Gas Exploratory Industry Index. 
 
-As an indicator of the index, VLO showed marketcap and subsequent price increases year over year since 2020, with quarter 2 being the best quarter for growth. I found that while some outliers exist, the average stock price of VLO has remained between 55 and 80 dollars. Using contingency tables, I found that since 2020, VLO has almost the same amount of net daily gains as it does losses, lending to suggest big daily gains and small daily losses over time. 
+As an indicator of the index, VLO showed marketcap and subsequent price increases year over year since 2020, with quarter 2 being the best quarter for growth. I found that while some outliers exist, the average stock price of VLO has remained between 55 and 80 dollars. Using contingency tables, I found that since 2020, VLO has almost the same amount of net daily gains as it does losses, suggesting big daily gains and small daily losses over time. 
 
-I then looked at the relationship between price and volume for VLO, DRIP and GUSH. Correlation between the two endpoints was low for VLO, but a fairly strong inverse correlation for the two ETF's, implying that as price goes down, volume goes up. VLO and the oil & gas industry as a whole has done well since 2020, leaving DRIP crashing to an all time low within the time frame evaluated. I'll be interested to continue monitoring these metrics to look for a shift in price and volume trends going forward. 
+I then looked at the relationship between price and volume for VLO, DRIP and GUSH. Correlation between the two endpoints was low for VLO. However a fairly strong inverse correlation for the two ETF's was found, implying that as price goes down, volume goes up. VLO and the oil & gas industry as a whole has done well since 2020, leaving DRIP crashing to an all time low within the time frame evaluated. I'll be interested to continue monitoring these metrics to look for a shift in price and volume trends going forward. 
 
 
 
