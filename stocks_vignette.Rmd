@@ -166,13 +166,12 @@ VLO$avgprice <- ((VLO$high + VLO$low)/2)
 #Quick plot of average daily price over the past 2 years
 plot3 <- ggplot(VLO, aes(x=date, y=avgprice)) +
   geom_point() +
-  geom_smooth(method = gamma) +
+  geom_smooth() +
   labs( x = "Date", y = "Avg Daily Price", title = "VLO Average Daily Price Data")
 plot3
 
 plot4 <- ggplot(VLO, aes(x=date, y=volume)) +
   geom_point() +
-  geom_smooth(method = gamma) +
   labs( x = "Date", y = "Volume", title = "VLO Volume Data")
 plot4
 ```
@@ -189,13 +188,12 @@ MRO$avgprice <- ((MRO$high + MRO$low)/2)
 #Quick plot of average daily price over the past 2 years
 plot5 <- ggplot(MRO, aes(x=date, y=avgprice)) +
   geom_point() +
-  geom_smooth(method = gamma) +
+  geom_smooth() +
   labs( x = "Date", y = "Avg Daily Price", title = "MRO Average Daily Price Data")
 plot5
 
 plot6 <- ggplot(MRO, aes(x=date, y=volume)) +
   geom_point() +
-  geom_smooth(method = gamma) +
   labs( x = "Date", y = "Volume", title = "MRO Volume Data")
 plot6
 ```
@@ -212,13 +210,12 @@ HES$avgprice <- ((HES$high + HES$low)/2)
 #Quick plot of average daily price over the past 2 years
 plot7 <- ggplot(HES, aes(x=date, y=avgprice)) +
   geom_point() +
-  geom_smooth(method = gamma) +
+  geom_smooth() +
   labs( x = "Date", y = "Avg Daily Price", title = "HES Average Daily Price Data")
 plot7
 
 plot8 <- ggplot(HES, aes(x=date, y=volume)) +
   geom_point() +
-  geom_smooth(method = gamma) +
   labs( x = "Date", y = "Volume", title = "HES Volume Data")
 plot8
 ```
@@ -238,13 +235,12 @@ DRIP$avgprice <- ((DRIP$high + DRIP$low)/2)
 #Quick plot of average daily price over the past 2 years
 plot9 <- ggplot(DRIP, aes(x=date, y=avgprice)) +
   geom_point() +
-  geom_smooth(method = gamma) +
+  geom_smooth() +
   labs( x = "Date", y = "Avg Daily Price", title = "DRIP Average Daily Price Data")
 plot9
 
 plot10 <- ggplot(DRIP, aes(x=date, y=volume)) +
   geom_point() +
-  geom_smooth(method = gamma) +
   labs( x = "Date", y = "Volume", title = "DRIP Volume Data")
 plot10
 ```
@@ -261,13 +257,12 @@ GUSH$avgprice <- ((GUSH$high + GUSH$low)/2)
 #Quick plot of average daily price over the past 2 years
 plot11 <- ggplot(GUSH, aes(x=date, y=avgprice)) +
   geom_point() +
-  geom_smooth(method = gamma) +
+  geom_smooth() +
   labs( x = "Date", y = "Avg Daily Price", title = "GUSH Average Daily Price Data")
 plot11
 
 plot12 <- ggplot(GUSH, aes(x=date, y=volume)) +
   geom_point() +
-  geom_smooth(method = gamma) +
   labs( x = "Date", y = "Volume", title = "GUSH Volume Data")
 plot12
 ```
