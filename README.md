@@ -5,8 +5,8 @@ Evan Brown
 
 -   [**Required Functions**](#required-functions)
 -   [**Functions for API Interaction**](#functions-for-api-interaction)
-    -   [‘aggregate’ function](#aggregate-function)
     -   [‘marketcap’ Function](#marketcap-function)
+    -   [‘aggregate’ function](#aggregate-function)
 -   [**Data Exploration**](#data-exploration)
 
 This is a vignette to show how to retrieve data from an
@@ -36,6 +36,46 @@ These R packages are required in order to work with the Polygon API:
 
 This portion of the vignette will show where I define functions for
 interacting with the Polygon Financial API.
+
+## ‘marketcap’ Function
+
+This function returns the [market
+cap](https://www.investopedia.com/terms/m/marketcapitalization.asp) for
+the user provided ticker and date. apikey default is my key, but users
+of the function should pass their own key in the function call options.
+User keys can be generated [here](https://polygon.io/).
+
+``` r
+marketcap <- function(ticker, date, apikey = "OrlbxnjeCyqGDGkKtpIqxKKs0f8Eh77C"){
+  
+  #Set URL partitions
+  baseURL <- "https://api.polygon.io/v3/reference/tickers/"
+    ticker <- ticker
+      dateadjustment <- "?date="
+        date <- date
+          adjustments <- "&apiKey="
+            apikey <- apikey
+          
+  #Paste partitions to get full URL with desired ticker
+  fullURL <- paste0(baseURL, ticker, dateadjustment, date, adjustments, apikey)   
+  
+  #Get api data using get function
+  api_data <- GET(fullURL)
+    #Convert to character string with fromJSON function
+    parsed_api_data <- fromJSON(rawToChar(api_data$content))
+      #Save as R object
+      parsed_api_data_results <- parsed_api_data$results
+      results <- as_data_frame(parsed_api_data_results[names(parsed_api_data_results) != "address"])
+      ticker <- results$ticker
+      marketcap <- results$market_cap
+      year <- substr(date, 1, 4)
+    
+      finaldata <- as_data_frame(cbind(ticker, marketcap, year))
+      finaldata <- finaldata[1,]
+      
+      return(finaldata)
+}
+```
 
 ## ‘aggregate’ function
 
@@ -82,46 +122,6 @@ aggregate<- function(ticker, apikey = "OrlbxnjeCyqGDGkKtpIqxKKs0f8Eh77C"){
   
   #Return tibble of data
   return(finaldata)
-}
-```
-
-## ‘marketcap’ Function
-
-This function returns the [market
-cap](https://www.investopedia.com/terms/m/marketcapitalization.asp) for
-the user provided ticker and date. apikey default is my key, but users
-of the function should pass their own key in the function call options.
-User keys can be generated [here](https://polygon.io/).
-
-``` r
-marketcap <- function(ticker, date, apikey = "OrlbxnjeCyqGDGkKtpIqxKKs0f8Eh77C"){
-  
-  #Set URL partitions
-  baseURL <- "https://api.polygon.io/v3/reference/tickers/"
-    ticker <- ticker
-      dateadjustment <- "?date="
-        date <- date
-          adjustments <- "&apiKey="
-            apikey <- apikey
-          
-  #Paste partitions to get full URL with desired ticker
-  fullURL <- paste0(baseURL, ticker, dateadjustment, date, adjustments, apikey)   
-  
-  #Get api data using get function
-  api_data <- GET(fullURL)
-    #Convert to character string with fromJSON function
-    parsed_api_data <- fromJSON(rawToChar(api_data$content))
-      #Save as R object
-      parsed_api_data_results <- parsed_api_data$results
-      results <- as_data_frame(parsed_api_data_results[names(parsed_api_data_results) != "address"])
-      ticker <- results$ticker
-      marketcap <- results$market_cap
-      year <- substr(date, 1, 4)
-    
-      finaldata <- as_data_frame(cbind(ticker, marketcap, year))
-      finaldata <- finaldata[1,]
-      
-      return(finaldata)
 }
 ```
 
@@ -180,12 +180,6 @@ plota
 
 ![](README_files/figure-gfmunnamed-chunk-4-1.png)<!-- -->
 
-Okay, so clearly an increase in market cap for VLO each year since 2020.
-
-MRO:
-
-SWN:
-
 Okay, so the marketcap function works in allowing us to retrieve market
 cap data on a common stock oil company. Plotting those values in a bar
 plot by year let us see that Valero Oil has increased market cap
@@ -209,27 +203,25 @@ VLO <- aggregate("VLO")
 VLO$avgprice <- ((VLO$high + VLO$low)/2)
 
 #Quick plot of average daily price over the past 2 years
-plot3 <- ggplot(VLO, aes(x=date, y=avgprice)) +
+plotVLO <- ggplot(VLO, aes(x=date, y=avgprice)) +
   geom_point() +
   geom_smooth() +
   labs( x = "Date", y = "Avg Daily Price", title = "VLO Average Daily Price Data")
-plot3
-```
 
-![](README_files/figure-gfmunnamed-chunk-7-1.png)<!-- -->
-
-``` r
-plot4 <- ggplot(VLO, aes(x=date, y=volume)) +
+plotVLOv <- ggplot(VLO, aes(x=date, y=volume)) +
   geom_point() +
   labs( x = "Date", y = "Volume", title = "VLO Volume Data")
-plot4
+
+plotVLO
 ```
 
-![](README_files/figure-gfmunnamed-chunk-7-2.png)<!-- -->
+![](README_files/figure-gfmunnamed-chunk-5-1.png)<!-- -->
 
-MRO:
+``` r
+plotVLOv
+```
 
-SWN:
+![](README_files/figure-gfmunnamed-chunk-5-2.png)<!-- -->
 
 Valero has shown a solid increase in average daily stock price and
 consistent volume across the price increase. Safe to say they have been
@@ -245,24 +237,27 @@ DRIP <- aggregate("DRIP")
 #Creating avg daily price column
 DRIP$avgprice <- ((DRIP$high + DRIP$low)/2)
 
-#Quick plot of average daily price over the past 2 years
-plot9 <- ggplot(DRIP, aes(x=date, y=avgprice)) +
+#Plot of average daily price over the past 2 years
+plotDRIP <- ggplot(DRIP, aes(x=date, y=avgprice)) +
   geom_point() +
   geom_smooth() +
   labs( x = "Date", y = "Avg Daily Price", title = "DRIP Average Daily Price Data")
-plot9
-```
 
-![](README_files/figure-gfmunnamed-chunk-10-1.png)<!-- -->
-
-``` r
-plot10 <- ggplot(DRIP, aes(x=date, y=volume)) +
+#Plot of daily volume over the past 2 years
+plotDRIPv <- ggplot(DRIP, aes(x=date, y=volume)) +
   geom_point() +
   labs( x = "Date", y = "Volume", title = "DRIP Volume Data")
-plot10
+
+plotDRIP
 ```
 
-![](README_files/figure-gfmunnamed-chunk-10-2.png)<!-- -->
+![](README_files/figure-gfmunnamed-chunk-6-1.png)<!-- -->
+
+``` r
+plotDRIPv
+```
+
+![](README_files/figure-gfmunnamed-chunk-6-2.png)<!-- -->
 
 Well, that looks different! As expected, the inverse ETF has a trend
 opposite the oil industry index stocks. However, what stands out to me
@@ -280,23 +275,26 @@ GUSH <- aggregate("GUSH")
 GUSH$avgprice <- ((GUSH$high + GUSH$low)/2)
 
 #Quick plot of average daily price over the past 2 years
-plot11 <- ggplot(GUSH, aes(x=date, y=avgprice)) +
+plotGUSH <- ggplot(GUSH, aes(x=date, y=avgprice)) +
   geom_point() +
   geom_smooth() +
   labs( x = "Date", y = "Avg Daily Price", title = "GUSH Average Daily Price Data")
-plot11
-```
 
-![](README_files/figure-gfmunnamed-chunk-11-1.png)<!-- -->
 
-``` r
-plot12 <- ggplot(GUSH, aes(x=date, y=volume)) +
+plotGUSHv <- ggplot(GUSH, aes(x=date, y=volume)) +
   geom_point() +
   labs( x = "Date", y = "Volume", title = "GUSH Volume Data")
-plot12
+
+plotGUSH
 ```
 
-![](README_files/figure-gfmunnamed-chunk-11-2.png)<!-- -->
+![](README_files/figure-gfmunnamed-chunk-7-1.png)<!-- -->
+
+``` r
+plotGUSHv
+```
+
+![](README_files/figure-gfmunnamed-chunk-7-2.png)<!-- -->
 
 As expected, since GUSH follows the industry, the price trend looks very
 similar to that of the Big 3. However, volume has decreased over time
