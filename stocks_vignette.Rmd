@@ -8,8 +8,8 @@ output:
     html_preview: false
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(fig.path = "../images/")
+```{r global options, include=FALSE}
+knitr::opts_chunk$set (echo = TRUE)
 ```
 
 This is a vignette to show how to retrieve data from an [API](https://aws.amazon.com/what-is/api/#:~:text=API%20stands%20for%20Application%20Programming,other%20using%20requests%20and%20responses.). To demonstrate, I'll be working with the [Polygon Financial API](https://polygon.io/docs/stocks/getting-started). For the purposes of this work, I used a free account with Polygon, limiting my data retrieval "from-date" to 2 years. 
@@ -47,7 +47,7 @@ aggregate<- function(ticker, apikey = "OrlbxnjeCyqGDGkKtpIqxKKs0f8Eh77C"){
   #Set URL partitions
   baseURL <- "https://api.polygon.io/v2/aggs/ticker/"
     ticker <- ticker
-      adjustments <- "/range/1/day/2020-06-24/2022-06-24?adjusted=true&sort=asc&limit=5000&apiKey="
+      adjustments <- "/range/1/day/2020-06-25/2022-06-25?adjusted=true&sort=asc&limit=5000&apiKey="
         apikey <- apikey
   
   #Paste partitions to get full URL with desired ticker
@@ -63,7 +63,7 @@ aggregate<- function(ticker, apikey = "OrlbxnjeCyqGDGkKtpIqxKKs0f8Eh77C"){
         parsed_tibble <- as_tibble(parsed_api_data_results)
 
   #Create sequence of raw dates
-  dates <- (seq(as.Date("2020-06-24"),as.Date("2022-06-24"),by = 1))
+  dates <- (seq(as.Date("2020-06-25"),as.Date("2022-06-25"),by = 1))
     #Filtering weekends (market not open)
     dates <- as.tibble((dates[!weekdays(dates) %in% c("Saturday","Sunday")]))
       #Filtering holidays (market not open)
